@@ -10,6 +10,9 @@ import express from 'express';
 import auth from './routes/auth';
 import comm from './routes/communication';
 
+import { Server } from "socket.io";
+
+
 dotenv.config();
 /*
  APP_KEY, and APP_SECRET should be on pair with example application values since we are working on current conference bounded with those values
@@ -49,6 +52,10 @@ if (SSL === 'true') {
   });
   server.on('error handler', console.error);
 }
+
+const io = new Server(server);
+
+export { io };
 
 process.on('SIGTERM', () => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
