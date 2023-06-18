@@ -1,5 +1,6 @@
 import fs from 'fs';
 import https from 'https';
+import { createServer } from "http";
 import path from 'path';
 
 import * as bodyParser from 'body-parser';
@@ -37,23 +38,29 @@ app.use(comm);
 // @ts-ignore
 let server = null;
 
-if (SSL === 'true') {
-  const httpsOptions = {
-    key: fs.readFileSync(path.join(__dirname, '..', 'certs', 'key.pem')),
-    cert: fs.readFileSync(path.join(__dirname, '..', 'certs', 'cert.pem')),
-  };
-  server = https.createServer(httpsOptions, app).listen(PORT, () => {
-    console.log(`Listening at https://${HOSTNAME}:${PORT}/`);
-  });
-  server.on('error handler', console.error);
-} else {
-  server = app.listen(PORT, () => {
-    console.log(`Listening at http://${HOSTNAME}:${PORT}/`);
-  });
-  server.on('error handler', console.error);
-}
 
-const io = new Server(server);
+server = createServer(app);
+server.listen(PORT, () => {
+  console.log(`Listening at http://${HOSTNAME}:${PORT}/`);
+});
+server.on('error handler', console.error);
+
+const socket_server = createServer();
+const io = new Server(socket_server, {
+  cors: {
+    origin: "http://localhost:3000",
+    
+  }});
+
+console.log("socket created");
+socket_server.listen(3001, () => {
+  console.log(`Socket server listening at http://${HOSTNAME}:3001`);
+});
+
+io.on('connection', () => {
+  console.log("connected");
+})
+
 
 export { io };
 
