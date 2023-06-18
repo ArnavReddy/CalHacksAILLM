@@ -1,4 +1,4 @@
-import { sendMaxData } from "../main";
+import { sendMaxData, sendTotalFaceData } from "../main";
 
 type Emotion = {
     name: string;
@@ -138,6 +138,7 @@ const aggregateScores: AggregateScores = {
 }
 function storeMostCommon() {
     var update_map: any = {}
+    sendTotalFaceData(aggregateScores); 
     types.forEach(type => {
         var max_val = -1;
         var best_res = "";
