@@ -151,17 +151,19 @@ function storeMostCommon(){
 
 }
 
-function calculateAggregate(type: string, apiInput: string) {
-    const data = JSON.parse(apiInput);
-    const emotions = data["face"]["prediction"][0][type];
+function calculateAggregate(apiInput: string) {
+    for(var type in types){
+        const data = JSON.parse(apiInput);
+        const emotions = data["face"]["prediction"][0][type];
 
-    emotions.forEach((emotion: { name: string; score: number; }) => {
-        const { name, score } = emotion;
+        emotions.forEach((emotion: { name: string; score: number; }) => {
+            const { name, score } = emotion;
 
-        if (name in aggregateScores) {
-            aggregateScores[type][name] += score;
-        }
-    }); 
+            if (name in aggregateScores) {
+                aggregateScores[type][name] += score;
+            }
+        }); 
+    }
 
     requestCount++; 
     if(requestCount % audienceMembers == 0){
@@ -169,8 +171,8 @@ function calculateAggregate(type: string, apiInput: string) {
     }
 }
 
-
-
 function addAudienceMember() {
     audienceMembers++; 
 }
+
+export {calculateAggregate}; 
