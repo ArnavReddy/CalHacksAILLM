@@ -63,6 +63,14 @@ const SpeakerState = ({participants, pState, conf}) => {
   const {isSpeaking} = pState[localID] || {};
   const currentInterval: any = useRef([]);
   const speakingIntervals:any = useRef([]);
+  const pastSpeakerTones:any = useRef([]);
+
+  useEffect(() => {
+    if(speakerTone !== "") {
+      pastSpeakerTones.current.push({tone: speakerTone, time: new Date()});
+    }
+    console.log(pastSpeakerTones.current);
+  }, [speakerTone])
 
   useEffect(() => {
 
@@ -95,8 +103,6 @@ const SpeakerState = ({participants, pState, conf}) => {
       }
       console.log("end", currDate);
     }
-    console.log(currentInterval.current);
-    console.log(speakingIntervals.current);
   }, [isSpeaking])
 
   // Function to add a new object to the array

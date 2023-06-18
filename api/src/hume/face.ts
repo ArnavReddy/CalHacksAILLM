@@ -155,14 +155,12 @@ function storeMostCommon() {
 
     });
     mostCommonData.push(update_map);
-    console.log("hello"); 
     sendMaxData(update_map);
 
 }
 
 
 function calculateAggregate(apiInput: string) {
-    console.log("hi there"); 
     const data = JSON.parse(apiInput);
     if (data.error) {
         return
