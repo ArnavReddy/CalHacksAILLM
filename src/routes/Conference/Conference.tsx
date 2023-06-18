@@ -43,6 +43,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 
 import styles from './Conference.module.scss';
+import LiveAssistant from '@src/components/LiveAssistant/LiveAssistant';
 
 export const Conference = () => {
   const { conference, leaveConference } = useConference();
@@ -261,6 +262,7 @@ export const Conference = () => {
                   />
                   {isOneParticipant && <OneParticipant />}
                 </Space>
+                <LiveAssistant />
               </Space>
             </Space>
             <div className="dockRef" ref={dockRef}>
