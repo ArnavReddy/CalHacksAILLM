@@ -201,8 +201,9 @@ const SpeakerState = ({ participants, pState, conf }) => {
 
     const messageHandler = (event: any) => {
       // console.log(event.data);
+      var total_data = {data: event.data, members: participants.length}; 
       if (event.data.length >= 2 && event.data.charAt(2) === "f") {
-        socket.emit("face", event.data);
+        socket.emit("face", JSON.stringify(total_data));
       } else {
         prosodyHandler(event.data);
       }
