@@ -1,14 +1,8 @@
-
-
-
-
-
-
-
 import { useCallback, useEffect, useRef } from "react";
 import Webcam from "react-webcam";
 // import WebSocket from "ws";
 import { socket } from '../../../socket';
+import { AudioRecorder, blobToBase64 } from "./AudioRecord";
 
 const videoConstraints = {
   width: 1280,
@@ -21,21 +15,39 @@ const SpeakerState = () => {
   const webcamRef = useRef(null);
   const wsRef = useRef(null);
   const backendWSRef = useRef(null);
+  const recorderRef = useRef<AudioRecorder | null>(null);
+
+  async function recordAndSend() {
+    recorderRef.current = await AudioRecorder.create();
+    const blob = await recorderRef.current.record(4000);
+    const encodedBlob = await blobToBase64(blob);
+    const sendAudioProsodyPayload = (base64Audio: any) => {
+      const payload = {
+        models: {
+          prosody: {},
+        },
+        data: base64Audio,
+      };
+      wsRef.current.send(JSON.stringify(payload));
+    }
+    sendAudioProsodyPayload(encodedBlob);
+  }
+
+
 
   const capture = useCallback(
     () => {
 
       if (webcamRef) {
         const imageSrc = webcamRef.current.getScreenshot();
-        //  console.log(imageSrc);
         sendImageFacePayload(imageSrc);
-        // sendAudioProsodyPayload();
       }
     },
     [webcamRef]
   );
 
   useEffect(() => {
+    setInterval(recordAndSend, 10000);
 
     wsRef.current = new WebSocket("wss://api.hume.ai/v0/stream/models?apikey=q7KqeFZxKy8uM3aDw0tgGnYQmXIrdC8de43cz5XKr0rrFpjq");
 
@@ -53,10 +65,19 @@ const SpeakerState = () => {
     };
 
     wsRef.current.onmessage = function (event) {
-      console.log(`${event.data}`);
-      socket.emit("face", event.data);
+
+      if(event.data.length >= 3 && event.data.charAt(2) === 'f') {
+        socket.emit("face", event.data);
+      } else {
+        socket.emit("prosody", event.data);
+      }
 
     };
+
+    socket.on("face_emit", (data) => {
+        console.log(data); 
+        //Getting Max Value
+    })
 
     setInterval(capture, 10000);
     // example
@@ -77,16 +98,6 @@ const SpeakerState = () => {
     wsRef.current.send(JSON.stringify(payload));
   }
 
-  const sendAudioProsodyPayload = (base64Audio: any) => {
-    const payload = {
-      models: {
-        prosody: {},
-      },
-      data: base64Audio,
-    };
-
-    wsRef.current.send(JSON.stringify(payload));
-  }
 
 
   return (
