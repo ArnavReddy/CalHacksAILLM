@@ -408,8 +408,9 @@ const SpeakerState = ({ participants, pState, conf }) => {
       },
       data: base64Image,
     };
-    if (!wsRef.current || wsRef?.current?.readyState === WebSocket.OPEN) {
-      console.log("attempting to create new socket connection");
+    if (wsRef.current && wsRef?.current?.readyState === WebSocket.OPEN) {
+      console.log("sending face payload");
+      console.log(payload);
       wsRef.current.send(JSON.stringify(payload));
     }
   };
