@@ -168,16 +168,18 @@ function calculateAggregate(apiInput: string) {
         return
     }
     types.forEach(type => {
-        const emotions = data["face"]["predictions"][0][type];
+        if (data["face"]["predictions"]) {
+            const emotions = data["face"]["predictions"][0][type];
 
-        emotions.forEach((emotion: { name: string; score: number; }) => {
-            let { name, score } = emotion;
+            emotions.forEach((emotion: { name: string; score: number; }) => {
+                let { name, score } = emotion;
 
-            if (name in aggregateScores[type]) {
-                if (score < 0.2) score = 0;
-                aggregateScores[type][name] += score;
-            }
-        });
+                if (name in aggregateScores[type]) {
+                    if (score < 0.2) score = 0;
+                    aggregateScores[type][name] += score;
+                }
+            });
+        }
 
     });
 
