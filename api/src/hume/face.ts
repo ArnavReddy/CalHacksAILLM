@@ -136,7 +136,7 @@ const aggregateScores: AggregateScores = {
 }
 function storeMostCommon(){
     var update_map:any = {}
-    for(var type in types){
+    types.forEach(type => {
         var max_val = -1; 
         var best_res = ""; 
         Object.keys(type).forEach((val) =>{
@@ -146,10 +146,11 @@ function storeMostCommon(){
             }
         });
         update_map[type] = best_res;
-    }
+    }); 
     mostCommonData.push(update_map); 
 
 }
+
 
 function calculateAggregate(apiInput: string) {
     const data = JSON.parse(apiInput);
@@ -160,9 +161,10 @@ function calculateAggregate(apiInput: string) {
         const emotions = data["face"]["predictions"][0][type];
 
         emotions.forEach((emotion: { name: string; score: number; }) => {
-            const { name, score } = emotion;
+            let { name, score } = emotion;
 
             if (name in aggregateScores[type]) {
+                if(score < 0.2) score = 0;  
                 aggregateScores[type][name] += score;
             }
         });
