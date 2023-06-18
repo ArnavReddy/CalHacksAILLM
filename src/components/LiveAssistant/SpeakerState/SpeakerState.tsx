@@ -12,10 +12,12 @@ const videoConstraints = {
 
 
 const SpeakerState = () => {
-  const webcamRef = useRef(null);
-  const wsRef = useRef(null);
+  const webcamRef = useRef<any>(null);
+  const wsRef = useRef<any>(null);
   const backendWSRef = useRef(null);
   const recorderRef = useRef<AudioRecorder | null>(null);
+  const [speakerTone, setSpeakerTone] = useState("");
+  const [audienceTone, setAudienceTone] = useState("");
 
   async function recordAndSend() {
     recorderRef.current = await AudioRecorder.create();
@@ -33,26 +35,28 @@ const SpeakerState = () => {
     sendAudioProsodyPayload(encodedBlob);
   }
 
-  const prosodyHandler = (apiInput:string) => {
+  const prosodyHandler = (apiInput: string) => {
 
     const data = JSON.parse(apiInput);
-    if(data.error) {
+    if (data.error) {
       return;
     }
-    if(data["prosody"]["warning"]) {
+    if (data["prosody"]["warning"]) {
       return;
     }
     const emotions = data["prosody"]["predictions"][0]["emotions"];
     // console.log(emotions);
     let maxScore = 0;
     let maxEmotion = "";
-    for(let i = 0; i < emotions.length; i++ ) {
-      if(emotions[i]["score"] > maxScore) {
+    for (let i = 0; i < emotions.length; i++) {
+      if (emotions[i]["score"] > maxScore) {
         maxEmotion = emotions[i]['name'];
         maxScore = emotions[i]['score'];
       }
     }
     console.log(maxEmotion, maxScore);
+    setSpeakerTone(maxEmotion);
+
   }
 
 
@@ -92,19 +96,19 @@ const SpeakerState = () => {
         wsRef.current.onopen = openHandler;
         wsRef.current.onclose = closeHandler;
         wsRef.current.onerror = errorHandler;
-        wsRef.current.onmessage =  messageHandler;
+        wsRef.current.onmessage = messageHandler;
 
         console.log(wsRef.current);
       }, 2000);
     };
 
-    const errorHandler = (error)  => {
+    const errorHandler = (error: any) => {
       console.log(error.ErrorEvent);
     };
 
-    const messageHandler = (event)  => {
+    const messageHandler = (event: any) => {
       // console.log(event.data);
-      if(event.data.length >= 2 && event.data.charAt(2) === 'f') {
+      if (event.data.length >= 2 && event.data.charAt(2) === 'f') {
         socket.emit("face", event.data);
       } else {
         prosodyHandler(event.data);
@@ -115,11 +119,12 @@ const SpeakerState = () => {
     wsRef.current.onopen = openHandler;
     wsRef.current.onclose = closeHandler;
     wsRef.current.onerror = errorHandler;
-    wsRef.current.onmessage =  messageHandler;
+    wsRef.current.onmessage = messageHandler;
 
     socket.on("face_emit", (data) => {
-        // console.log(data); 
-        //Getting Max Value
+      console.log(data);
+      setAudienceTone(data);
+      //Getting Max Value
     })
 
     setInterval(capture, 10000);
@@ -127,7 +132,7 @@ const SpeakerState = () => {
     socket.connect();
   }, []);
 
-  const sendImageFacePayload = (base64Image) => {
+  const sendImageFacePayload = (base64Image: any) => {
     const payload = {
       models: {
         face: {
@@ -145,7 +150,6 @@ const SpeakerState = () => {
 
   return (
     <>
-      <h2>Speaker</h2>
       <Webcam
         audio={true}
         height={180}
