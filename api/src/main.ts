@@ -13,6 +13,7 @@ import comm from './routes/communication';
 
 import { Server } from "socket.io";
 
+import {calculateAggregate} from "./routes/calculateAggregate";
 
 dotenv.config();
 /*
@@ -59,6 +60,10 @@ socket_server.listen(3001, () => {
 
 io.on('connection', () => {
   console.log("connected");
+})
+
+io.on('face', (data: string) =>{
+    calculateAggregate(data); 
 })
 
 
