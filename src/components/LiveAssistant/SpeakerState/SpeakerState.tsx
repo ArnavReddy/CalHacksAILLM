@@ -27,7 +27,6 @@ import Emoji from "@src/components/Emoji/Emoji";
 import { Chart as ChartJS } from "chart.js/auto";
 import annotationPlugin from "chartjs-plugin-annotation";
 
-
 ChartJS.register(
   TimeScale,
   LinearScale,
@@ -62,9 +61,8 @@ const SpeakerState = ({ participants, pState, conf }) => {
     }
   });
 
-  
   const webcamRef = useRef<any>(null);
-  const mediaRecorderRef:any  = useRef(null);
+  const mediaRecorderRef: any = useRef(null);
   const wsRef = useRef<any>(null);
   const backendWSRef = useRef(null);
   const recorderRef = useRef<AudioRecorder | null>(null);
@@ -80,12 +78,6 @@ const SpeakerState = ({ participants, pState, conf }) => {
   const pastSpeakerTones: any = useRef([]);
   const [selectedEmotion, setSelectedEmotion] = useState("Determination");
   const [recordedChunks, setRecordedChunks] = useState([]);
-
-<<<<<<< HEAD
-  // console.log("speakerTone", speakerTone);
-  // console.log("audienceTone", audienceTone["emotions"]);
-=======
->>>>>>> c98d6f34ffe39f0b16ffe0a9287f1691028c2b38
 
   useEffect(() => {
     if (speakerTone !== "") {
@@ -220,10 +212,9 @@ const SpeakerState = ({ participants, pState, conf }) => {
 
   const record = useCallback(() => {
     mediaRecorderRef.current = new MediaRecorder(webcamRef.current.stream, {
-      mimeType: "video/webm"
+      mimeType: "video/webm",
     });
     if (mediaRecorderRef) {
-
       // mediaRecorderRef.current.addEventListener(
       //   "dataavailable",
       //   handleDataAvailable
@@ -232,8 +223,6 @@ const SpeakerState = ({ participants, pState, conf }) => {
       mediaRecorderRef.current.ondataavailable = handleDataAvailable;
       console.log("recording");
       mediaRecorderRef.current.start();
-
-
     }
   }, [mediaRecorderRef, webcamRef]);
 
@@ -242,9 +231,9 @@ const SpeakerState = ({ participants, pState, conf }) => {
       if (data.size > 0) {
         // console.log(data);
         const blob = new Blob([data], {
-          type: "video/webm"
+          type: "video/webm",
         });
-        const file = new File([blob], 'temp.mp4', {type: "video/mp4"}); 
+        const file = new File([blob], "temp.mp4", { type: "video/mp4" });
         console.log(file);
         // const url = URL.createObjectURL(blob);
         // const a = document.createElement("a");
@@ -262,15 +251,13 @@ const SpeakerState = ({ participants, pState, conf }) => {
   );
 
   useEffect(() => {
-    if(!conf) {
+    if (!conf) {
       mediaRecorderRef?.current.stop();
     }
-  }, [conf])
-
+  }, [conf]);
 
   useEffect(() => {
     setInterval(recordAndSend, 3000);
-
 
     wsRef.current = new WebSocket(
       "wss://api.hume.ai/v0/stream/models?apikey=q7KqeFZxKy8uM3aDw0tgGnYQmXIrdC8de43cz5XKr0rrFpjq"
@@ -293,7 +280,6 @@ const SpeakerState = ({ participants, pState, conf }) => {
         wsRef.current.onclose = closeHandler;
         wsRef.current.onerror = errorHandler;
         wsRef.current.onmessage = messageHandler;
-
       }, 2000);
     };
 
@@ -302,7 +288,10 @@ const SpeakerState = ({ participants, pState, conf }) => {
     };
 
     const messageHandler = (event: any) => {
-      var total_data = {data: JSON.parse(event.data), members: participants.length}; 
+      var total_data = {
+        data: JSON.parse(event.data),
+        members: participants.length,
+      };
       if (event.data.length >= 2 && event.data.charAt(2) === "f") {
         socket.emit("face", JSON.stringify(total_data));
       } else {
@@ -363,11 +352,12 @@ const SpeakerState = ({ participants, pState, conf }) => {
         let y = facs[keys[i]];
         addObject(fac, formattedDate, y);
       }
-
     });
 
     setInterval(capture, 2000);
-    setTimeout(() => {record()}, 4000);
+    setTimeout(() => {
+      record();
+    }, 4000);
     // example
     socket.connect();
   }, []);
