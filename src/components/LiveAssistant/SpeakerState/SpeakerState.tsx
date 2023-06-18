@@ -23,8 +23,6 @@ import { Line } from "react-chartjs-2";
 import { socket } from "../../../socket";
 import { AudioRecorder, blobToBase64 } from "./AudioRecord";
 
-import Emoji from "@src/components/Emoji/Emoji";
-import { Chart as ChartJS } from "chart.js/auto";
 import annotationPlugin from "chartjs-plugin-annotation";
 
 ChartJS.register(
@@ -61,7 +59,9 @@ const SpeakerState = ({ participants, pState, conf }) => {
     }
   });
 
+  
   const webcamRef = useRef<any>(null);
+  const mediaRecorderRef:any  = useRef(null);
   const wsRef = useRef<any>(null);
   const backendWSRef = useRef(null);
   const recorderRef = useRef<AudioRecorder | null>(null);
@@ -75,22 +75,19 @@ const SpeakerState = ({ participants, pState, conf }) => {
   const speakingIntervals: any = useRef([]);
   const pastSpeakerTones: any = useRef([]);
   const [selectedEmotion, setSelectedEmotion] = useState("Determination");
+  const [recordedChunks, setRecordedChunks] = useState([]);
 
-  console.log("speakerTone", speakerTone);
-  console.log("audienceTone", audienceTone["emotions"]);
 
   useEffect(() => {
     if (speakerTone !== "") {
       pastSpeakerTones.current.push({ tone: speakerTone, time: new Date() });
     }
-    // console.log(pastSpeakerTones.current);
   }, [speakerTone]);
 
   useEffect(() => {
     const currDate = new Date();
     if (isSpeaking) {
       if (currentInterval.current.length == 0) {
-        // console.log("pushing");
         currentInterval.current.push(new Date());
       } else if (currentInterval.current.length == 2) {
         const currDate = new Date();
@@ -101,7 +98,6 @@ const SpeakerState = ({ participants, pState, conf }) => {
           currentInterval.current = [];
         }
       }
-      // console.log("start", currDate);
     } else {
       if (currentInterval.current.length == 1) {
         currentInterval.current.push(new Date());
@@ -114,7 +110,6 @@ const SpeakerState = ({ participants, pState, conf }) => {
           currentInterval.current = [];
         }
       }
-      // console.log("end", currDate);
     }
   }, [isSpeaking]);
 
@@ -153,7 +148,6 @@ const SpeakerState = ({ participants, pState, conf }) => {
       return;
     }
     const emotions = data["prosody"]["predictions"][0]["emotions"];
-    // console.log(emotions);
     let maxScore = 0;
     let maxEmotion = "";
     for (let i = 0; i < emotions.length; i++) {
@@ -162,7 +156,6 @@ const SpeakerState = ({ participants, pState, conf }) => {
         maxScore = emotions[i]["score"];
       }
     }
-    // console.log(maxEmotion, maxScore);
     setSpeakerTone(maxEmotion);
   };
 
@@ -174,12 +167,59 @@ const SpeakerState = ({ participants, pState, conf }) => {
     }
   }, [webcamRef]);
 
-  useEffect(() => {
-    setInterval(recordAndSend, 4000);
+  const record = useCallback(() => {
+    mediaRecorderRef.current = new MediaRecorder(webcamRef.current.stream, {
+      mimeType: "video/webm"
+    });
+    if (mediaRecorderRef) {
 
-    // setInterval(() => {
-    //   wsRef.current = new WebSocket("wss://api.hume.ai/v0/stream/models?apikey=q7KqeFZxKy8uM3aDw0tgGnYQmXIrdC8de43cz5XKr0rrFpjq");
-    // }, 50000)
+      // mediaRecorderRef.current.addEventListener(
+      //   "dataavailable",
+      //   handleDataAvailable
+      // );
+
+      mediaRecorderRef.current.ondataavailable = handleDataAvailable;
+      console.log("recording");
+      mediaRecorderRef.current.start();
+
+
+    }
+  }, [mediaRecorderRef, webcamRef]);
+
+  const handleDataAvailable = useCallback(
+    ({ data }) => {
+      if (data.size > 0) {
+        // console.log(data);
+        const blob = new Blob([data], {
+          type: "video/webm"
+        });
+        const file = new File([blob], 'temp.mp4', {type: "video/mp4"}); 
+        console.log(file);
+        // const url = URL.createObjectURL(blob);
+        // const a = document.createElement("a");
+        // document.body.appendChild(a);
+        // a.style = "display: none";
+        // a.href = url;
+        // a.download = "react-webcam-stream-capture.webm";
+        // a.click();
+        // console.log(url);
+        // setRecordedChunks((prev) => prev.concat(data));
+        // console.log(recordedChunks);
+      }
+    },
+    [setRecordedChunks]
+  );
+
+  useEffect(() => {
+    if(!conf) {
+      mediaRecorderRef?.current.stop();
+    }
+  }, [conf])
+
+
+  useEffect(() => {
+    setInterval(recordAndSend, 3000);
+
 
     wsRef.current = new WebSocket(
       "wss://api.hume.ai/v0/stream/models?apikey=q7KqeFZxKy8uM3aDw0tgGnYQmXIrdC8de43cz5XKr0rrFpjq"
@@ -203,7 +243,6 @@ const SpeakerState = ({ participants, pState, conf }) => {
         wsRef.current.onerror = errorHandler;
         wsRef.current.onmessage = messageHandler;
 
-        // console.log(wsRef.current);
       }, 2000);
     };
 
@@ -212,11 +251,7 @@ const SpeakerState = ({ participants, pState, conf }) => {
     };
 
     const messageHandler = (event: any) => {
-      // console.log(event.data);
-      var total_data = {
-        data: JSON.parse(event.data),
-        members: participants.length,
-      };
+      var total_data = {data: JSON.parse(event.data), members: participants.length}; 
       if (event.data.length >= 2 && event.data.charAt(2) === "f") {
         socket.emit("face", JSON.stringify(total_data));
       } else {
@@ -230,20 +265,15 @@ const SpeakerState = ({ participants, pState, conf }) => {
     wsRef.current.onmessage = messageHandler;
 
     socket.on("face_emit", (data) => {
-      // console.log(data);
       setAudienceTone(data);
-      // console.log(speakerTone, audienceTone)
       //Getting Max Value
     });
 
     socket.on("face_total_emit", (data) => {
-      // console.log(data);
       let json = JSON.parse(data);
       let emotions = json["data"]["emotions"];
       let descriptions = json["data"]["descriptions"];
       let facs = json["data"]["facs"];
-      // console.log("JSON", json);
-      // console.log("EMOTION", emotions)
       let time = json["time"];
 
       const inputDate = new Date(time);
@@ -260,7 +290,6 @@ const SpeakerState = ({ participants, pState, conf }) => {
 
       // Construct the formatted string
       const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-      // console.log("DATE", formattedDate);
 
       // Loop through the keys
       let keys = Object.keys(emotions);
@@ -284,10 +313,10 @@ const SpeakerState = ({ participants, pState, conf }) => {
         addObject(fac, formattedDate, y);
       }
 
-      // console.log("DATAMAP", JSON.stringify(dataEmotionMap, null, "\t"));
     });
 
-    setInterval(capture, 10000);
+    setInterval(capture, 2000);
+    setTimeout(() => {record()}, 4000);
     // example
     socket.connect();
   }, []);
