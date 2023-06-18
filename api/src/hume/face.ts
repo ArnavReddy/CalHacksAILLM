@@ -193,14 +193,6 @@ function calculateAggregate(apiInput: string) {
         
         storeMostCommon();
     }
-  });
-
-  // storeMostCommon();
-
-  requestCount++;
-  if (requestCount % audienceMembers == 0) {
-    storeMostCommon();
-  }
-}
+  };
 
 export { calculateAggregate };
