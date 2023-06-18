@@ -48,16 +48,16 @@ const SpeakerState = () => {
   const recorderRef = useRef<AudioRecorder | null>(null);
   const [speakerTone, setSpeakerTone] = useState("");
   const [audienceTone, setAudienceTone] = useState("");
-  let [dataMap, setDataMap] = useState({});
+  let [dataEmotionMap, setDataEmotionMap] = useState({});
 
   // Function to add a new object to the array
   function addObject(emotion_in: any, x_in: any, y_in: any) {
-    if (!dataMap[emotion_in]) {
-      dataMap[emotion_in] = [];
+    if (!dataEmotionMap[emotion_in]) {
+      dataEmotionMap[emotion_in] = [];
     }
-    dataMap[emotion_in].push({ x: x_in, y: y_in });
+    dataEmotionMap[emotion_in].push({ x: x_in, y: y_in });
 
-    setDataMap({ ...dataMap });
+    setDataEmotionMap({ ...dataEmotionMap });
   }
 
   async function recordAndSend() {
@@ -94,7 +94,7 @@ const SpeakerState = () => {
         maxScore = emotions[i]["score"];
       }
     }
-    console.log(maxEmotion, maxScore);
+    // console.log(maxEmotion, maxScore);
     setSpeakerTone(maxEmotion);
   };
 
@@ -164,12 +164,13 @@ const SpeakerState = () => {
     });
 
     socket.on("face_total_emit", (data) => {
-      console.log(data);
+      // console.log(data);
       let json = JSON.parse(data);
       let emotions = json["data"]["emotions"];
-      // console.log("JSON", json)
+      let descriptions = json["data"]["descriptions"];
+      let facs = json["data"]["facs"];
+      // console.log("JSON", json);
       // console.log("EMOTION", emotions)
-      const keys = Object.keys(emotions);
       let time = json["time"];
 
       const inputDate = new Date(time);
@@ -189,16 +190,28 @@ const SpeakerState = () => {
       console.log("DATE", formattedDate);
 
       // Loop through the keys
+      let keys = Object.keys(emotions);
       for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-        const value = emotions[key];
-        console.log(`Key: ${key}, Value: ${value}`);
-        let emotion = key;
-        let y = value;
+        let emotion = keys[i];
+        let y = emotions[keys[i]];
         addObject(emotion, formattedDate, y);
       }
 
-      console.log("DATAMAP", JSON.stringify(dataMap["Sadness"], null, "\t"));
+      keys = Object.keys(descriptions);
+      for (let i = 0; i < keys.length; i++) {
+        let description = keys[i];
+        let y = descriptions[keys[i]];
+        addObject(description, formattedDate, y);
+      }
+
+      keys = Object.keys(facs);
+      for (let i = 0; i < keys.length; i++) {
+        let fac = keys[i];
+        let y = facs[keys[i]];
+        addObject(fac, formattedDate, y);
+      }
+
+      console.log("DATAMAP", JSON.stringify(dataEmotionMap, null, "\t"));
     });
 
     setInterval(capture, 10000);
@@ -206,7 +219,7 @@ const SpeakerState = () => {
     socket.connect();
   }, []);
 
-  useEffect(() => {}, [dataMap]);
+  useEffect(() => {}, [dataEmotionMap]);
 
   const sendImageFacePayload = (base64Image: any) => {
     const payload = {
@@ -240,78 +253,71 @@ const SpeakerState = () => {
         //     },
         //   },
         // }}
+        options={{
+          responsive: true,
+          scales: {
+            // x: {
+            //   type: "time",
+            // },
+            x: {
+              type: "time",
+              ticks: {
+                font: {
+                  size: 14,
+                },
+              },
+            },
+            y: {
+              ticks: {
+                font: {
+                  size: 14,
+                },
+              },
+            },
+          },
+          plugins: {
+            tooltip: {
+              enabled: true,
+              backgroundColor: "rgba(0, 0, 0, 0.8)",
+              titleColor: "#fff",
+              bodyColor: "#fff",
+              borderColor: "rgba(0, 0, 0, 0.8)",
+              borderWidth: 1,
+            },
+            legend: {
+              labels: {
+                font: {
+                  size: 14,
+                },
+              },
+            },
+          },
+          animation: {
+            duration: 2000,
+          },
+          elements: {
+            line: {
+              tension: 1, // Adjust the line tension as needed (0.0 to 1.0)
+              borderWidth: 3,
+              borderColor: "rgba(75, 192, 192, 1)",
+              backgroundColor: "rgba(75, 192, 192, 0.2)",
+              fill: true,
+            },
+            point: {
+              radius: 6,
+              backgroundColor: "rgba(75, 192, 192, 1)",
+              borderWidth: 2,
+              borderColor: "#fff",
+              hoverRadius: 6,
+              hoverBackgroundColor: "#fff",
+              hoverBorderWidth: 2,
+            },
+          },
+        }}
         data={{
           datasets: [
             {
-              data:
-                // [
-                //   {
-                //     x: "2023-06-18 02:16:33",
-                //     y: 0,
-                //   },
-                //   {
-                //     x: "2023-06-18 02:16:33",
-                //     y: 0,
-                //   },
-                //   {
-                //     x: "2023-06-18 02:16:33",
-                //     y: 0,
-                //   },
-                //   {
-                //     x: "2023-06-18 02:16:33",
-                //     y: 0,
-                //   },
-                //   {
-                //     x: "2023-06-18 02:16:46",
-                //     y: 0,
-                //   },
-                //   {
-                //     x: "2023-06-18 02:16:46",
-                //     y: 0,
-                //   },
-                //   {
-                //     x: "2023-06-18 02:16:46",
-                //     y: 0,
-                //   },
-                //   {
-                //     x: "2023-06-18 02:16:46",
-                //     y: 0,
-                //   },
-                //   {
-                //     x: "2023-06-18 02:16:55",
-                //     y: 0.20710834860801697,
-                //   },
-                //   {
-                //     x: "2023-06-18 02:16:55",
-                //     y: 0.20710834860801697,
-                //   },
-                //   {
-                //     x: "2023-06-18 02:16:55",
-                //     y: 0.20710834860801697,
-                //   },
-                //   {
-                //     x: "2023-06-18 02:16:55",
-                //     y: 0.20710834860801697,
-                //   },
-                //   {
-                //     x: "2023-06-18 02:17:04",
-                //     y: 0,
-                //   },
-                //   {
-                //     x: "2023-06-18 02:17:04",
-                //     y: 0,
-                //   },
-                //   {
-                //     x: "2023-06-18 02:17:04",
-                //     y: 0,
-                //   },
-                //   {
-                //     x: "2023-06-18 02:17:04",
-                //     y: 0,
-                //   },
-                // ],
-
-                dataMap["Sadness"],
+              data: dataEmotionMap["Sadness"],
             },
           ],
         }}
