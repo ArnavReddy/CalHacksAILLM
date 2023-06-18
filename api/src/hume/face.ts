@@ -161,7 +161,8 @@ function storeMostCommon() {
 
 
 function calculateAggregate(apiInput: string) {
-    const data = JSON.parse(apiInput);
+    const data = JSON.parse(apiInput)["data"];
+    audienceMembers =JSON.parse(apiInput)["members"] ; 
     if (data.error) {
         return
     }
@@ -181,16 +182,12 @@ function calculateAggregate(apiInput: string) {
 
     });
 
-    storeMostCommon(); 
+    // storeMostCommon(); 
 
     requestCount++;
     if (requestCount % audienceMembers == 0) {
         storeMostCommon();
     }
-}
-
-function addAudienceMember() {
-    audienceMembers++;
 }
 
 export { calculateAggregate }; 
