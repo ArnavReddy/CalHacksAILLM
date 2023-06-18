@@ -50,7 +50,7 @@ const socket_server = createServer();
 const io = new Server(socket_server, {
   cors: {
     origin: "http://localhost:3000",
-    
+
   }});
 
 console.log("socket created");
@@ -62,7 +62,6 @@ io.on('connection', (socket) => {
   console.log("connected");
 
   socket.on('face', (data) => {
-    
     calculateAggregate(data);
 
   });
@@ -72,13 +71,16 @@ function sendMaxData(data: Array<string>){
     io.emit("face_emit", data); 
 }
 
-export {sendMaxData}; 
+function sendTotalFaceData(data: Object){
+    const date = new Date();
+    io.emit("face_total_emit", JSON.stringify({"data": data, "time": date.toString()})); 
+}
+
+export {sendMaxData, sendTotalFaceData}; 
 
 
 
 process.on('SIGTERM', () => {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
   server.close(() => {
     console.log('Http server closed.');
   });

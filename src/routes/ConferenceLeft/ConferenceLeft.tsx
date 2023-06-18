@@ -1,4 +1,5 @@
 import Rejoin from '@components/Rejoin';
+import ViewStats from '@components/ViewStats';
 import ReturnToHome from '@components/ReturnToHome';
 import Text from '@components/Text';
 import { Layout, Space, useTheme } from '@dolbyio/comms-uikit-react';
@@ -21,6 +22,7 @@ export const ConferenceLeft = () => {
         </Space>
         <ReturnToHome />
         <Rejoin />
+        <ViewStats />
       </Space>
     </Layout>
   );
