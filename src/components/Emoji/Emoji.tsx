@@ -3,7 +3,7 @@ type AppProps = {
   name: string
 }
 
-const emojiNam: any = {
+const emojiName: any = {
   "Admiration": "nerd-face_1f913",
   "Adoration": "thinking-face_1f914",
   "Aesthetic Appreciation": "smiling-face-with-halo_1f607",
@@ -82,11 +82,11 @@ const emojiNam: any = {
 
 // https://github.com/dherault/react-apple-emojis/blob/master/src/data.json
 const Emoji = ({ name }: AppProps) => {
-  name = "birthday-cake_1f382"
+
   return (
 
     <img
-      src={`https://em-content.zobj.net/thumbs/240/apple/354/${name}.png`}
+      src={`https://em-content.zobj.net/thumbs/240/apple/354/${emojiName[name]}.png`}
       alt=" "
       aria-label={name}
       style={{ width: 48, height: 48 }}

@@ -1,20 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
 // import WebSocket from "ws";
-import { socket } from "../../../socket";
-import { AudioRecorder, blobToBase64 } from "./AudioRecord";
-import { Line } from "react-chartjs-2";
-import "chartjs-adapter-moment";
 import {
-  TimeScale,
+  Legend,
+  LineElement,
   LinearScale,
   PointElement,
-  LineElement,
+  TimeScale,
   Title,
   Tooltip,
-  Legend,
 } from "chart.js";
+import "chartjs-adapter-moment";
+import { Line } from "react-chartjs-2";
+import { socket } from "../../../socket";
+import { AudioRecorder, blobToBase64 } from "./AudioRecord";
 
+import Emoji from "@src/components/Emoji/Emoji";
 import { Chart as ChartJS } from "chart.js/auto";
 
 ChartJS.register(
@@ -64,18 +65,20 @@ const SpeakerState = ({ participants, pState, conf }) => {
   const speakingIntervals: any = useRef([]);
   const pastSpeakerTones: any = useRef([]);
 
+  console.log('speakerTone', speakerTone)
+
   useEffect(() => {
     if (speakerTone !== "") {
       pastSpeakerTones.current.push({ tone: speakerTone, time: new Date() });
     }
-    console.log(pastSpeakerTones.current);
+    // console.log(pastSpeakerTones.current);
   }, [speakerTone]);
 
   useEffect(() => {
     const currDate = new Date();
     if (isSpeaking) {
       if (currentInterval.current.length == 0) {
-        console.log("pushing");
+        // console.log("pushing");
         currentInterval.current.push(new Date());
       } else if (currentInterval.current.length == 2) {
         const currDate = new Date();
@@ -86,7 +89,7 @@ const SpeakerState = ({ participants, pState, conf }) => {
           currentInterval.current = [];
         }
       }
-      console.log("start", currDate);
+      // console.log("start", currDate);
     } else {
       if (currentInterval.current.length == 1) {
         currentInterval.current.push(new Date());
@@ -99,7 +102,7 @@ const SpeakerState = ({ participants, pState, conf }) => {
           currentInterval.current = [];
         }
       }
-      console.log("end", currDate);
+      // console.log("end", currDate);
     }
   }, [isSpeaking]);
 
@@ -264,7 +267,7 @@ const SpeakerState = ({ participants, pState, conf }) => {
         addObject(fac, formattedDate, y);
       }
 
-      console.log("DATAMAP", JSON.stringify(dataEmotionMap, null, "\t"));
+      // console.log("DATAMAP", JSON.stringify(dataEmotionMap, null, "\t"));
     });
 
     setInterval(capture, 10000);
@@ -272,7 +275,7 @@ const SpeakerState = ({ participants, pState, conf }) => {
     socket.connect();
   }, []);
 
-  useEffect(() => {}, [dataEmotionMap]);
+  useEffect(() => { }, [dataEmotionMap]);
 
   const sendImageFacePayload = (base64Image: any) => {
     const payload = {
@@ -298,6 +301,19 @@ const SpeakerState = ({ participants, pState, conf }) => {
         width={320}
         videoConstraints={videoConstraints}
       />
+      {speakerTone && <>
+        <div>
+          <h3 style={{ color: "white" }}>Speaker Tone</h3>
+          <Emoji name={speakerTone} />
+        </div>
+      </>}
+      {audienceTone && <>
+        <div>
+          <h3 style={{ color: "white" }}>Audience Tone</h3>
+          <Emoji name={audienceTone} />
+        </div>
+
+      </>}
       <Line
         // options={{
         //   scales: {
