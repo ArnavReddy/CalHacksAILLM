@@ -1,5 +1,5 @@
 import Text from '@components/Text';
-import { Input, ValidationType, Button, Space, useTheme } from '@dolbyio/comms-uikit-react';
+import { Button, Input, Space, ValidationType, useTheme } from '@dolbyio/comms-uikit-react';
 import useConferenceCreate from '@hooks/useConferenceCreate';
 import { useEnter } from '@hooks/useEnter';
 import { CreateStep } from '@src/types/routes';
@@ -84,9 +84,9 @@ export const ConferenceCreateInput = ({
     setValidation(
       value.length
         ? {
-            valid,
-            message: valid ? undefined : intl.formatMessage({ id: settings.validationMessage }, { minChar }),
-          }
+          valid,
+          message: valid ? undefined : intl.formatMessage({ id: settings.validationMessage }, { minChar }),
+        }
         : { valid: true },
     );
     if (valid) callback?.();
