@@ -77,6 +77,7 @@ const SpeakerState = ({ participants, pState, conf }) => {
   const speakingIntervals: any = useRef([]);
   const pastSpeakerTones: any = useRef([]);
   const [selectedEmotion, setSelectedEmotion] = useState("Determination");
+  const [selectedSpeech, setSelectedSpeech] = useState("Determination");
   const [recordedChunks, setRecordedChunks] = useState([]);
   const intervalIDs: any = useRef([]);
 
@@ -589,7 +590,16 @@ const SpeakerState = ({ participants, pState, conf }) => {
           ],
         }}
       />
-
+      <select
+        id="speech-selected"
+        onChange={(e) => setSelectedSpeech(e.target.value)}
+      >
+        {Object.keys(dataSpeechMap).map((speech) => (
+          <option key={speech} value={speech}>
+            {speech}
+          </option>
+        ))}
+      </select>
       <Line
         // options={{
         //   scales: {
@@ -661,8 +671,8 @@ const SpeakerState = ({ participants, pState, conf }) => {
             // },
           },
           animation: {
-            duration: dataSpeechMap["Sadness"]
-              ? dataSpeechMap["Sadness"].length < 10
+            duration: dataSpeechMap[selectedSpeech]
+              ? dataSpeechMap[selectedSpeech].length < 10
                 ? 2000
                 : 0
               : 0,
@@ -689,7 +699,7 @@ const SpeakerState = ({ participants, pState, conf }) => {
         data={{
           datasets: [
             {
-              data: removeDups(dataSpeechMap["Sadness"]),
+              data: removeDups(dataSpeechMap[selectedSpeech]),
             },
           ],
         }}

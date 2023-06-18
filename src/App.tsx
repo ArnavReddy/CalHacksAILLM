@@ -1,25 +1,28 @@
-import React, { useMemo } from 'react';
-import { createRoot } from 'react-dom/client';
-import { BrowserRouter, useLocation } from 'react-router-dom';
+import React, { useMemo } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter, useLocation } from "react-router-dom";
 
-import './App.module.scss';
+import "./App.module.scss";
 
-import { ColorModeScript } from '@chakra-ui/react';
-import { CommsProvider } from '@dolbyio/comms-uikit-react';
-import './App.module.scss';
-import TranslationProvider from './components/TranslationProvider';
-import { ConferenceCreateProvider } from './context/ConferenceCreateContext';
-import { Navigator } from './routes/Navigator';
-import theme from './theme';
+import { ColorModeScript } from "@chakra-ui/react";
+import { CommsProvider } from "@dolbyio/comms-uikit-react";
+import "./App.module.scss";
+import TranslationProvider from "./components/TranslationProvider";
+import { ConferenceCreateProvider } from "./context/ConferenceCreateContext";
+import { Navigator } from "./routes/Navigator";
+import theme from "./theme";
 
 const App = () => {
   const location = useLocation();
 
   const urlToken = useMemo(() => {
-    return encodeURIComponent(new URLSearchParams(window.location.search).get('token') || '');
+    return encodeURIComponent(
+      new URLSearchParams(window.location.search).get("token") || ""
+    );
   }, [location]);
 
-  const YOUR_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJkb2xieS5pbyIsImlhdCI6MTY4NzAyNzA2MSwic3ViIjoibkNWcXpUYVRmOWpUa1ZJSXNzQjVXdz09IiwiYXV0aG9yaXRpZXMiOlsiUk9MRV9DVVNUT01FUiJdLCJ0YXJnZXQiOiJzZXNzaW9uIiwib2lkIjoiZDI2MDNmZGQtYzc4Ny00M2RkLTkyMzctMDFhNWU2ZTIwZmQ0IiwiYWlkIjoiMTljZWU3ZjktMjE2OS00OGU5LTgxNjItZDk3YjE3MTliZmM2IiwiYmlkIjoiOGEzNjgwZGU4OGI0MzMxMjAxODhjYWEwMDcyNDM3YmUiLCJleHAiOjE2ODcxMTM0NjF9.F6Cf2s5r6rLUCMOK_ngkN4VBJ_e1rFoHxFvBh_6J4x1zu59-Nqpse7LiSod8SZIv3qfez0guBhQfS_qmpOA1jQ";
+  const YOUR_TOKEN =
+    "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJkb2xieS5pbyIsImlhdCI6MTY4NzExNjgzMCwic3ViIjoieHFHSkFBaXo5OURoSzJnTE02OUo2QT09IiwiYXV0aG9yaXRpZXMiOlsiUk9MRV9DVVNUT01FUiJdLCJ0YXJnZXQiOiJzZXNzaW9uIiwib2lkIjoiODBlYjE1NTUtODEwNi00NDBhLThiODQtYThlYTZhYzY5M2RjIiwiYWlkIjoiNTAzNTEyN2UtMzMyOS00MDdjLWI0MmYtNmM5MDI2MmFiYjg4IiwiYmlkIjoiOGEzNjhjZWU4OGI0MzMxYTAxODhjZmZmMWMzODNhOGYiLCJleHAiOjE2ODcyMDMyMzB9.kYIc5RiDoE6OnTyKKTX2y-t1Fuih0rjF-6MLpbyJvZSAqqlgs9BPvCy82t9XIBbant3i7WGri66RSF2yOyU1QA";
 
   return (
     <>
@@ -28,8 +31,9 @@ const App = () => {
         <ConferenceCreateProvider>
           <CommsProvider
             token={YOUR_TOKEN}
-            packageUrlPrefix={`${window.location.origin}${import.meta.env.BASE_URL
-              }assets/wasm`}
+            packageUrlPrefix={`${window.location.origin}${
+              import.meta.env.BASE_URL
+            }assets/wasm`}
           >
             <Navigator />
           </CommsProvider>
@@ -39,7 +43,7 @@ const App = () => {
   );
 };
 
-const container = document.getElementById('root');
+const container = document.getElementById("root");
 // no-non-null-assertion comes from official react docs
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const root = createRoot(container!);
@@ -48,5 +52,5 @@ root.render(
     <BrowserRouter basename={import.meta.env.BASE_URL}>
       <App />
     </BrowserRouter>
-  </React.StrictMode>,
+  </React.StrictMode>
 );
