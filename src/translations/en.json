@@ -138,5 +138,6 @@
   "videoForwardingOptionHeadline": "Participant tiles number",
   "videoForwardingOptionDsc": "Adjust the video forwarding value. You will be receiving video streams accordingly.",
   "someoneActivatedMusicMode": "{participant} activated Music Mode",
-  "videoRetrying": "We are retrying to get  video information, please wait..."
+  "videoRetrying": "We are retrying to get  video information, please wait...",
+  "viewStats": "View Stats"
 }
