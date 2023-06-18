@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
 // import WebSocket from "ws";
 import { socket } from '../../../socket';
@@ -19,7 +19,7 @@ const SpeakerState = () => {
 
   async function recordAndSend() {
     recorderRef.current = await AudioRecorder.create();
-    const blob = await recorderRef.current.record(4000);
+    const blob = await recorderRef.current.record(2000);
     const encodedBlob = await blobToBase64(blob);
     const sendAudioProsodyPayload = (base64Audio: any) => {
       const payload = {
@@ -31,6 +31,28 @@ const SpeakerState = () => {
       wsRef.current.send(JSON.stringify(payload));
     }
     sendAudioProsodyPayload(encodedBlob);
+  }
+
+  const prosodyHandler = (apiInput:string) => {
+
+    const data = JSON.parse(apiInput);
+    if(data.error) {
+      return;
+    }
+    if(data["prosody"]["warning"]) {
+      return;
+    }
+    const emotions = data["prosody"]["predictions"][0]["emotions"];
+    // console.log(emotions);
+    let maxScore = 0;
+    let maxEmotion = "";
+    for(let i = 0; i < emotions.length; i++ ) {
+      if(emotions[i]["score"] > maxScore) {
+        maxEmotion = emotions[i]['name'];
+        maxScore = emotions[i]['score'];
+      }
+    }
+    console.log(maxEmotion, maxScore);
   }
 
 
@@ -46,36 +68,57 @@ const SpeakerState = () => {
     [webcamRef]
   );
 
+
   useEffect(() => {
-    setInterval(recordAndSend, 10000);
+    setInterval(recordAndSend, 4000);
+
+    // setInterval(() => {
+    //   wsRef.current = new WebSocket("wss://api.hume.ai/v0/stream/models?apikey=q7KqeFZxKy8uM3aDw0tgGnYQmXIrdC8de43cz5XKr0rrFpjq");
+    // }, 50000)
 
     wsRef.current = new WebSocket("wss://api.hume.ai/v0/stream/models?apikey=q7KqeFZxKy8uM3aDw0tgGnYQmXIrdC8de43cz5XKr0rrFpjq");
 
-
-    wsRef.current.onopen = () => {
+    const openHandler = () => {
       console.log("WebSocket connection established");
     };
 
-    wsRef.current.onclose = () => {
+    const closeHandler = () => {
       console.log("WebSocket connection closed");
+      setTimeout(() => {
+        console.log('reconnecting');
+        wsRef.current = null;
+        wsRef.current = new WebSocket("wss://api.hume.ai/v0/stream/models?apikey=q7KqeFZxKy8uM3aDw0tgGnYQmXIrdC8de43cz5XKr0rrFpjq");
+
+        wsRef.current.onopen = openHandler;
+        wsRef.current.onclose = closeHandler;
+        wsRef.current.onerror = errorHandler;
+        wsRef.current.onmessage =  messageHandler;
+
+        console.log(wsRef.current);
+      }, 2000);
     };
 
-    wsRef.current.onerror = function (error) {
+    const errorHandler = (error)  => {
       console.log(error.ErrorEvent);
     };
 
-    wsRef.current.onmessage = function (event) {
-
-      if(event.data.length >= 3 && event.data.charAt(2) === 'f') {
+    const messageHandler = (event)  => {
+      // console.log(event.data);
+      if(event.data.length >= 2 && event.data.charAt(2) === 'f') {
         socket.emit("face", event.data);
       } else {
-        socket.emit("prosody", event.data);
+        prosodyHandler(event.data);
       }
-
     };
 
+
+    wsRef.current.onopen = openHandler;
+    wsRef.current.onclose = closeHandler;
+    wsRef.current.onerror = errorHandler;
+    wsRef.current.onmessage =  messageHandler;
+
     socket.on("face_emit", (data) => {
-        console.log(data); 
+        // console.log(data); 
         //Getting Max Value
     })
 
