@@ -65,7 +65,8 @@ const SpeakerState = ({ participants, pState, conf }) => {
   const speakingIntervals: any = useRef([]);
   const pastSpeakerTones: any = useRef([]);
 
-  console.log('speakerTone', speakerTone)
+  console.log("speakerTone", speakerTone);
+  console.log("audienceTone", audienceTone["emotions"]);
 
   useEffect(() => {
     if (speakerTone !== "") {
@@ -275,7 +276,7 @@ const SpeakerState = ({ participants, pState, conf }) => {
     socket.connect();
   }, []);
 
-  useEffect(() => { }, [dataEmotionMap]);
+  useEffect(() => {}, [dataEmotionMap]);
 
   const sendImageFacePayload = (base64Image: any) => {
     const payload = {
@@ -293,27 +294,22 @@ const SpeakerState = ({ participants, pState, conf }) => {
 
   return (
     <>
-      <Webcam
-        audio={true}
-        height={180}
-        ref={webcamRef}
-        screenshotFormat="image/jpeg"
-        width={320}
-        videoConstraints={videoConstraints}
-      />
-      {speakerTone && <>
-        <div>
-          <h3 style={{ color: "white" }}>Speaker Tone</h3>
-          <Emoji name={speakerTone} />
-        </div>
-      </>}
-      {audienceTone && <>
-        <div>
-          <h3 style={{ color: "white" }}>Audience Tone</h3>
-          <Emoji name={audienceTone} />
-        </div>
-
-      </>}
+      {speakerTone && (
+        <>
+          <div>
+            <h3 style={{ color: "white" }}>Speaker Tone</h3>
+            <Emoji name={speakerTone} />
+          </div>
+        </>
+      )}
+      {audienceTone && (
+        <>
+          <div>
+            <h3 style={{ color: "white" }}>Audience Tone</h3>
+            <Emoji name={audienceTone["emotions"]} />
+          </div>
+        </>
+      )}
       <Line
         // options={{
         //   scales: {
@@ -390,6 +386,15 @@ const SpeakerState = ({ participants, pState, conf }) => {
             },
           ],
         }}
+      />
+      <Webcam
+        audio={true}
+        height={180}
+        ref={webcamRef}
+        screenshotFormat="image/jpeg"
+        width={320}
+        videoConstraints={videoConstraints}
+        style={{ visibility: "hidden" }}
       />
     </>
   );
