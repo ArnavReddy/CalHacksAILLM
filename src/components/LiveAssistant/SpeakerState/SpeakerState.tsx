@@ -17,6 +17,7 @@ import { AudioRecorder, blobToBase64 } from "./AudioRecord";
 
 import Emoji from "@src/components/Emoji/Emoji";
 import { Chart as ChartJS } from "chart.js/auto";
+import annotationPlugin from "chartjs-plugin-annotation";
 
 ChartJS.register(
   TimeScale,
@@ -25,7 +26,8 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  annotationPlugin
 );
 
 const options = {
@@ -356,6 +358,16 @@ const SpeakerState = ({ participants, pState, conf }) => {
                 },
               },
             },
+            // annotation: {
+            //   annotations: {
+            //     box1: {
+            //       type: "box",
+            //       yMin: 0.2,
+            //       yMax: 0.8,
+            //       backgroundColor: "rgba(255, 99, 132, 0.25)",
+            //     },
+            //   },
+            // },
           },
           animation: {
             duration: 2000,
