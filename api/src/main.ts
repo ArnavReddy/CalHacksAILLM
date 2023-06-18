@@ -13,7 +13,7 @@ import comm from './routes/communication';
 
 import { Server } from "socket.io";
 
-import {calculateAggregate} from "./routes/calculateAggregate";
+import {calculateAggregate} from "./routes/hume/face";
 
 dotenv.config();
 /*
@@ -58,13 +58,14 @@ socket_server.listen(3001, () => {
   console.log(`Socket server listening at http://${HOSTNAME}:3001`);
 });
 
-io.on('connection', () => {
+io.on('connection', (socket) => {
   console.log("connected");
-})
 
-io.on('face', (data: string) =>{
-    calculateAggregate(data); 
-})
+  socket.on('face', (data) => {
+    calculateAggregate(data);
+  });
+
+});
 
 
 export { io };

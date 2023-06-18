@@ -164,6 +164,7 @@ function calculateAggregate(apiInput: string) {
             }
         }); 
     }
+    console.log("scores", aggregateScores);
 
     requestCount++; 
     if(requestCount % audienceMembers == 0){
