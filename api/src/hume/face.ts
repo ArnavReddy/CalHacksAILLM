@@ -1,3 +1,5 @@
+import { sendMaxData } from "../main";
+
 type Emotion = {
     name: string;
     score: number;
@@ -5,15 +7,15 @@ type Emotion = {
 
 type AggregateScores = {
     [key: string]: { [key: string]: number },
-  };
+};
 
-var audienceMembers = 0; 
+var audienceMembers = 0;
 
-var requestCount = 0; 
+var requestCount = 0;
 
-var mostCommonData = []; 
+var mostCommonData = [];
 
-var types = ["emotions", "facs", "descriptions"]; 
+var types = ["emotions", "facs", "descriptions"];
 
 const aggregateScores: AggregateScores = {
     "emotions": {
@@ -134,52 +136,60 @@ const aggregateScores: AggregateScores = {
         "Wrinkled nose": 0,
     }
 }
-function storeMostCommon(){
-    var update_map:any = {}
+function storeMostCommon() {
+    var update_map: any = {}
     types.forEach(type => {
-        var max_val = -1; 
-        var best_res = ""; 
-        Object.keys(type).forEach((val) =>{
-            if(max_val < aggregateScores[type][val]){
-                max_val = aggregateScores[type][val]; 
-                best_res = val; 
+        var max_val = -1;
+        var best_res = "";
+        Object.keys(aggregateScores[type]).forEach((val) => {
+            if (max_val < aggregateScores[type][val]) {
+                max_val = aggregateScores[type][val];
+                best_res = val;
             }
         });
         update_map[type] = best_res;
-    }); 
-    mostCommonData.push(update_map); 
+        Object.keys(aggregateScores[type]).forEach((val) => {
+            aggregateScores[type][val] = 0;
+        });
+
+    });
+    mostCommonData.push(update_map);
+    console.log("hello"); 
+    sendMaxData(update_map);
 
 }
 
 
 function calculateAggregate(apiInput: string) {
+    console.log("hi there"); 
     const data = JSON.parse(apiInput);
     if (data.error) {
-            return
+        return
     }
-    types.forEach(type => { 
+    types.forEach(type => {
         const emotions = data["face"]["predictions"][0][type];
 
         emotions.forEach((emotion: { name: string; score: number; }) => {
             let { name, score } = emotion;
 
             if (name in aggregateScores[type]) {
-                if(score < 0.2) score = 0;  
+                if (score < 0.2) score = 0;
                 aggregateScores[type][name] += score;
             }
         });
 
     });
 
-    console.log("scores", aggregateScores);
-    requestCount++; 
-    if(requestCount % audienceMembers == 0){
-        storeMostCommon(); 
+    storeMostCommon(); 
+
+    requestCount++;
+    if (requestCount % audienceMembers == 0) {
+        storeMostCommon();
     }
 }
 
 function addAudienceMember() {
-    audienceMembers++; 
+    audienceMembers++;
 }
 
-export {calculateAggregate}; 
+export { calculateAggregate }; 

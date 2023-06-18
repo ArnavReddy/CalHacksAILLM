@@ -66,14 +66,18 @@ const SpeakerState = () => {
 
     wsRef.current.onmessage = function (event) {
 
-      console.log(`${event.data}`);
-      if(event.data.length >= 3 && event.data.charAt(3) === 'f') {
+      if(event.data.length >= 3 && event.data.charAt(2) === 'f') {
         socket.emit("face", event.data);
       } else {
         socket.emit("prosody", event.data);
       }
 
     };
+
+    socket.on("face_emit", (data) => {
+        console.log(data); 
+        //Getting Max Value
+    })
 
     setInterval(capture, 10000);
     // example

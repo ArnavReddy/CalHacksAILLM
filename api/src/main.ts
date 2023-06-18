@@ -62,14 +62,19 @@ io.on('connection', (socket) => {
   console.log("connected");
 
   socket.on('face', (data) => {
-    // console.log(data);
+    
     calculateAggregate(data);
-  });
 
+  });
 });
 
+function sendMaxData(data: Array<string>){
+    io.emit("face_emit", data); 
+}
 
-export { io };
+export {sendMaxData}; 
+
+
 
 process.on('SIGTERM', () => {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
