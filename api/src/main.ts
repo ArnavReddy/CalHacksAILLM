@@ -13,7 +13,7 @@ import comm from './routes/communication';
 
 import { Server } from "socket.io";
 
-import {calculateAggregate} from "./routes/hume/face";
+import {calculateAggregate} from "./hume/face";
 
 dotenv.config();
 /*
@@ -62,6 +62,7 @@ io.on('connection', (socket) => {
   console.log("connected");
 
   socket.on('face', (data) => {
+    // console.log(data);
     calculateAggregate(data);
   });
 

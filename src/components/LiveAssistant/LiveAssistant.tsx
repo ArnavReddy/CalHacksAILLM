@@ -21,7 +21,7 @@ const LiveAssistant = () => {
 
       if (webcamRef) {
         const imageSrc = webcamRef.current.getScreenshot();
-         console.log(imageSrc);
+        //  console.log(imageSrc);
          sendImageFacePayload(imageSrc);
         // sendAudioProsodyPayload();
       }
@@ -30,56 +30,28 @@ const LiveAssistant = () => {
   );
 
   useEffect(() => {
-    // wsRef.current = new WebSocket("wss://api.hume.ai/v0/stream/models", {
-    //   headers: {
-    //     Authorization: "q7KqeFZxKy8uM3aDw0tgGnYQmXIrdC8de43cz5XKr0rrFpjq",
-    //     "X-Hume-Api-Key": "q7KqeFZxKy8uM3aDw0tgGnYQmXIrdC8de43cz5XKr0rrFpjq",
-    //   },
-    // });
-
-    // wsRef.current = new WebSocket("ws://api.hume.ai/v0/stream/models",
-    //   headers: {
-    //   Authorization: "q7KqeFZxKy8uM3aDw0tgGnYQmXIrdC8de43cz5XKr0rrFpjq",
-    //   "X-Hume-Api-Key": "q7KqeFZxKy8uM3aDw0tgGnYQmXIrdC8de43cz5XKr0rrFpjq",
-    // });
 
     wsRef.current = new WebSocket("wss://api.hume.ai/v0/stream/models?apikey=q7KqeFZxKy8uM3aDw0tgGnYQmXIrdC8de43cz5XKr0rrFpjq");
-    backendWSRef.current = new WebSocket("ws://localhost:3001/face");
-    // wsRef.current.headers = {
-    //   Authorization: "q7KqeFZxKy8uM3aDw0tgGnYQmXIrdC8de43cz5XKr0rrFpjq",
-    //   "X-Hume-Api-Key": "q7KqeFZxKy8uM3aDw0tgGnYQmXIrdC8de43cz5XKr0rrFpjq",
-    // }
 
     
     wsRef.current.onopen = () => {
       console.log("WebSocket connection established");
-    };
-    backendWSRef.current.onopen = () => {
-      console.log("Backend WebSocket connection established");
     };
 
     wsRef.current.onclose = () => {
       console.log("WebSocket connection closed");
     };
 
-    backendWSRef.current.onclose = () => {
-      console.log("Backend WebSocket connection closed");
-    };
-
     wsRef.current.onerror = function (error) {
-      console.log(error.ErrorEvent);
-    };
-
-    backendWSRef.current.onerror = function (error) {
-      console.log("BACKEND");
       console.log(error.ErrorEvent);
     };
 
     wsRef.current.onmessage = function (event) {
       console.log(`${event.data}`);
+      socket.emit("face", event.data);
+
     };
-
-
+  
     setInterval(capture, 10000);
     // example
     socket.connect();

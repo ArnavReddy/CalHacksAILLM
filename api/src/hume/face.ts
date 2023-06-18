@@ -152,20 +152,24 @@ function storeMostCommon(){
 }
 
 function calculateAggregate(apiInput: string) {
-    for(var type in types){
-        const data = JSON.parse(apiInput);
-        const emotions = data["face"]["prediction"][0][type];
+    const data = JSON.parse(apiInput);
+    if (data.error) {
+            return
+    }
+    types.forEach(type => { 
+        const emotions = data["face"]["predictions"][0][type];
 
         emotions.forEach((emotion: { name: string; score: number; }) => {
             const { name, score } = emotion;
 
-            if (name in aggregateScores) {
+            if (name in aggregateScores[type]) {
                 aggregateScores[type][name] += score;
             }
-        }); 
-    }
-    console.log("scores", aggregateScores);
+        });
 
+    });
+
+    console.log("scores", aggregateScores);
     requestCount++; 
     if(requestCount % audienceMembers == 0){
         storeMostCommon(); 
