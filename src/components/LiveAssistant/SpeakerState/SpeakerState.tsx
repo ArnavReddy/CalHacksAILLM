@@ -2,6 +2,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
 // import WebSocket from "ws";
 import {
+  Card,
+  CardBody,
+  CardHeader,
+  Divider,
+  Heading,
+  Text,
+} from "@chakra-ui/react";
+import Emoji from "@src/components/Emoji/Emoji";
+import {
   Legend,
   LineElement,
   LinearScale,
@@ -10,6 +19,7 @@ import {
   Title,
   Tooltip,
 } from "chart.js";
+import { Chart as ChartJS } from "chart.js/auto";
 import "chartjs-adapter-moment";
 import { Line } from "react-chartjs-2";
 import { socket } from "../../../socket";
@@ -17,6 +27,7 @@ import { AudioRecorder, blobToBase64 } from "./AudioRecord";
 
 import Emoji from "@src/components/Emoji/Emoji";
 import { Chart as ChartJS } from "chart.js/auto";
+import annotationPlugin from "chartjs-plugin-annotation";
 
 ChartJS.register(
   TimeScale,
@@ -25,7 +36,8 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  annotationPlugin
 );
 
 const options = {
@@ -201,7 +213,6 @@ const SpeakerState = ({ participants, pState, conf }) => {
 
     const messageHandler = (event: any) => {
       // console.log(event.data);
-      console.log("hello", typeof(event.data));
       var total_data = {data: JSON.parse(event.data), members: participants.length}; 
       if (event.data.length >= 2 && event.data.charAt(2) === "f") {
         socket.emit("face", JSON.stringify(total_data));
@@ -296,22 +307,42 @@ const SpeakerState = ({ participants, pState, conf }) => {
 
   return (
     <>
-      {speakerTone && (
-        <>
-          <div>
-            <h3 style={{ color: "white" }}>Speaker Tone</h3>
-            <Emoji name={speakerTone} />
-          </div>
-        </>
-      )}
-      {audienceTone && (
-        <>
-          <div>
-            <h3 style={{ color: "white" }}>Audience Tone</h3>
-            <Emoji name={audienceTone["emotions"]} />
-          </div>
-        </>
-      )}
+      <Card>
+        <CardHeader>
+          <Heading color="white" size="lg">
+            Speaker Tone
+          </Heading>
+        </CardHeader>
+        <CardBody>
+          {speakerTone && (
+            <>
+              <Text color="white" size="lg">
+                {speakerTone}
+              </Text>
+              <Emoji name={speakerTone} />
+            </>
+          )}
+        </CardBody>
+      </Card>
+      <Divider />
+      <Card>
+        <CardHeader>
+          <Heading color="white" size="lg">
+            Audience Tone
+          </Heading>
+        </CardHeader>
+        <CardBody>
+          {audienceTone && (
+            <>
+              <Text color="white" size="lg">
+                {audienceTone["emotions"]}{" "}
+              </Text>
+              <Emoji name={audienceTone["emotions"]} />
+            </>
+          )}
+        </CardBody>
+      </Card>
+      <Divider />
       <Line
         // options={{
         //   scales: {
@@ -358,6 +389,16 @@ const SpeakerState = ({ participants, pState, conf }) => {
                 },
               },
             },
+            // annotation: {
+            //   annotations: {
+            //     box1: {
+            //       type: "box",
+            //       yMin: 0.2,
+            //       yMax: 0.8,
+            //       backgroundColor: "rgba(255, 99, 132, 0.25)",
+            //     },
+            //   },
+            // },
           },
           animation: {
             duration: 2000,
