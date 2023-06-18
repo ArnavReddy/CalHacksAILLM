@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Webcam from "react-webcam";
 // import WebSocket from "ws";
+import { Card, CardBody, CardHeader, Divider, Heading, Text } from '@chakra-ui/react';
+import Emoji from "@src/components/Emoji/Emoji";
 import {
   Legend,
   LineElement,
@@ -10,13 +12,11 @@ import {
   Title,
   Tooltip,
 } from "chart.js";
+import { Chart as ChartJS } from "chart.js/auto";
 import "chartjs-adapter-moment";
 import { Line } from "react-chartjs-2";
 import { socket } from "../../../socket";
 import { AudioRecorder, blobToBase64 } from "./AudioRecord";
-
-import Emoji from "@src/components/Emoji/Emoji";
-import { Chart as ChartJS } from "chart.js/auto";
 
 ChartJS.register(
   TimeScale,
@@ -276,7 +276,7 @@ const SpeakerState = ({ participants, pState, conf }) => {
     socket.connect();
   }, []);
 
-  useEffect(() => {}, [dataEmotionMap]);
+  useEffect(() => { }, [dataEmotionMap]);
 
   const sendImageFacePayload = (base64Image: any) => {
     const payload = {
@@ -294,22 +294,32 @@ const SpeakerState = ({ participants, pState, conf }) => {
 
   return (
     <>
-      {speakerTone && (
-        <>
-          <div>
-            <h3 style={{ color: "white" }}>Speaker Tone</h3>
+      <Card>
+        <CardHeader>
+          <Heading color="white" size='lg'>Speaker Tone</Heading>
+        </CardHeader>
+        <CardBody>
+
+          {speakerTone && (<>
+            <Text color="white" size='lg'>{speakerTone}</Text>
             <Emoji name={speakerTone} />
-          </div>
-        </>
-      )}
-      {audienceTone && (
-        <>
-          <div>
-            <h3 style={{ color: "white" }}>Audience Tone</h3>
+          </>)}
+        </CardBody>
+      </Card >
+      <Divider />
+      <Card>
+
+        <CardHeader>
+          <Heading color="white" size="lg">Audience Tone</Heading>
+        </CardHeader>
+        <CardBody>
+          {audienceTone && (<>
+            <Text color="white" size='lg'>{audienceTone["emotions"]} </Text>
             <Emoji name={audienceTone["emotions"]} />
-          </div>
-        </>
-      )}
+          </>)}
+        </CardBody>
+      </Card>
+      <Divider />
       <Line
         // options={{
         //   scales: {
