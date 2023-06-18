@@ -75,10 +75,10 @@ const SpeakerState = ({ participants, pState, conf }) => {
   const currentInterval: any = useRef([]);
   const speakingIntervals: any = useRef([]);
   const pastSpeakerTones: any = useRef([]);
-  const [emotionalState, setEmotionalState] = useState({});
+  const [selectedEmotion, setSelectedEmotion] = useState("Determination");
 
-  console.log("speakerTone", speakerTone);
-  console.log("audienceTone", audienceTone["emotions"]);
+  // console.log("speakerTone", speakerTone);
+  // console.log("audienceTone", audienceTone["emotions"]);
 
   useEffect(() => {
     if (speakerTone !== "") {
@@ -164,7 +164,7 @@ const SpeakerState = ({ participants, pState, conf }) => {
       return;
     }
     const emotions = data["prosody"]["predictions"][0]["emotions"];
-    console.log("EMO", emotions);
+    // console.log("EMO", emotions);
     let maxScore = 0;
     let maxEmotion = "";
     let instantEmotions: any = {};
@@ -176,7 +176,7 @@ const SpeakerState = ({ participants, pState, conf }) => {
       }
     }
 
-    let time = new Date().getTime().toString();
+    let time = new Date().toString();
 
     const inputDate = new Date(time);
 
@@ -195,14 +195,16 @@ const SpeakerState = ({ participants, pState, conf }) => {
     // console.log("DATE", formattedDate);
 
     // Loop through the keys
+
     let keys = Object.keys(instantEmotions);
     for (let i = 0; i < keys.length; i++) {
       let emotion = keys[i];
       let y = instantEmotions[keys[i]];
       addObjectSpeech(emotion, formattedDate, y);
     }
+    console.log("SPEECHDATAMAP", dataSpeechMap);
 
-    console.log(maxEmotion, maxScore);
+    // console.log(maxEmotion, maxScore);
     setSpeakerTone(maxEmotion);
   };
 
@@ -349,6 +351,22 @@ const SpeakerState = ({ participants, pState, conf }) => {
     wsRef.current.send(JSON.stringify(payload));
   };
 
+  console.log("EMOTIONMAP", JSON.stringify(Object.keys(dataEmotionMap)));
+
+  function removeDups(dataArr) {
+    if (!dataArr) return [];
+    let set = new Set();
+    let out = [];
+    dataArr.forEach((data) => {
+      if (!set.has(data.x)) {
+        set.add(data.x);
+        out.push(data);
+      }
+    });
+
+    return out.length > 10 ? out.slice(-10) : out;
+  }
+
   return (
     <>
       <Card>
@@ -358,14 +376,12 @@ const SpeakerState = ({ participants, pState, conf }) => {
           </Heading>
         </CardHeader>
         <CardBody>
-          {speakerTone && (
-            <>
-              <Text color="white" size="lg">
-                {speakerTone}
-              </Text>
-              <Emoji name={speakerTone} />
-            </>
-          )}
+          <>
+            <Text color="white" size="lg">
+              {speakerTone ? speakerTone : ""}
+            </Text>
+            <Emoji name={speakerTone ? speakerTone : ""} />
+          </>
         </CardBody>
       </Card>
       <Divider />
@@ -376,17 +392,24 @@ const SpeakerState = ({ participants, pState, conf }) => {
           </Heading>
         </CardHeader>
         <CardBody>
-          {audienceTone && (
-            <>
-              <Text color="white" size="lg">
-                {audienceTone["emotions"]}{" "}
-              </Text>
-              <Emoji name={audienceTone["emotions"]} />
-            </>
-          )}
+          <>
+            <Text color="white" size="lg">
+              {audienceTone ? audienceTone["emotions"] : ""}{" "}
+            </Text>
+            <Emoji name={audienceTone ? audienceTone["emotions"] : ""} />
+          </>
         </CardBody>
       </Card>
       <Divider />
+      <select
+        id="emotion-selected"
+        onChange={(e) => setSelectedEmotion(e.target.value)}
+      >
+        {Object.keys(dataEmotionMap).map((emotion) => (
+          <option value={emotion}>{emotion}</option>
+        ))}
+      </select>
+
       <Line
         // options={{
         //   scales: {
@@ -403,6 +426,10 @@ const SpeakerState = ({ participants, pState, conf }) => {
             // },
             x: {
               type: "time",
+              title: {
+                display: true,
+                text: "Time",
+              },
               ticks: {
                 font: {
                   size: 14,
@@ -414,6 +441,10 @@ const SpeakerState = ({ participants, pState, conf }) => {
                 font: {
                   size: 14,
                 },
+              },
+              title: {
+                display: true,
+                text: "Agg Score",
               },
             },
           },
@@ -427,11 +458,11 @@ const SpeakerState = ({ participants, pState, conf }) => {
               borderWidth: 1,
             },
             legend: {
-              labels: {
-                font: {
-                  size: 14,
-                },
-              },
+              display: false,
+            },
+            title: {
+              display: true,
+              text: "Audience Tone",
             },
             // annotation: {
             //   annotations: {
@@ -445,11 +476,15 @@ const SpeakerState = ({ participants, pState, conf }) => {
             // },
           },
           animation: {
-            duration: 2000,
+            duration: dataEmotionMap[selectedEmotion]
+              ? dataEmotionMap[selectedEmotion].length < 10
+                ? 2000
+                : 0
+              : 0,
           },
           elements: {
             line: {
-              tension: 1, // Adjust the line tension as needed (0.0 to 1.0)
+              tension: 0.2, // Adjust the line tension as needed (0.0 to 1.0)
               borderWidth: 3,
               borderColor: "rgba(75, 192, 192, 1)",
               backgroundColor: "rgba(75, 192, 192, 0.2)",
@@ -469,7 +504,7 @@ const SpeakerState = ({ participants, pState, conf }) => {
         data={{
           datasets: [
             {
-              data: dataEmotionMap["Sadness"],
+              data: removeDups(dataEmotionMap[selectedEmotion]),
             },
           ],
         }}
@@ -491,6 +526,10 @@ const SpeakerState = ({ participants, pState, conf }) => {
             // },
             x: {
               type: "time",
+              title: {
+                display: true,
+                text: "Time",
+              },
               ticks: {
                 font: {
                   size: 14,
@@ -502,6 +541,10 @@ const SpeakerState = ({ participants, pState, conf }) => {
                 font: {
                   size: 14,
                 },
+              },
+              title: {
+                display: true,
+                text: "Agg Score",
               },
             },
           },
@@ -515,11 +558,16 @@ const SpeakerState = ({ participants, pState, conf }) => {
               borderWidth: 1,
             },
             legend: {
-              labels: {
-                font: {
-                  size: 14,
-                },
-              },
+              display: false,
+              // labels: {
+              //   font: {
+              //     size: 14,
+              //   },
+              // },
+            },
+            title: {
+              display: true,
+              text: "Speaker Tone",
             },
             // annotation: {
             //   annotations: {
@@ -533,11 +581,15 @@ const SpeakerState = ({ participants, pState, conf }) => {
             // },
           },
           animation: {
-            duration: 2000,
+            duration: dataSpeechMap["Sadness"]
+              ? dataSpeechMap["Sadness"].length < 10
+                ? 2000
+                : 0
+              : 0,
           },
           elements: {
             line: {
-              tension: 1, // Adjust the line tension as needed (0.0 to 1.0)
+              tension: 0.2, // Adjust the line tension as needed (0.0 to 1.0)
               borderWidth: 3,
               borderColor: "rgba(75, 192, 192, 1)",
               backgroundColor: "rgba(75, 192, 192, 0.2)",
@@ -557,11 +609,12 @@ const SpeakerState = ({ participants, pState, conf }) => {
         data={{
           datasets: [
             {
-              data: dataSpeechMap["Sadness"],
+              data: removeDups(dataSpeechMap["Sadness"]),
             },
           ],
         }}
       />
+
       <Webcam
         audio={true}
         height={180}
