@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import Webcam from "react-webcam";
+import {socket} from '../../socket';
 
 const videoConstraints = {
   width: 1280,
@@ -14,7 +15,7 @@ const LiveAssistant = () => {
 
       if (webcamRef) {
         const imageSrc = webcamRef.current.getScreenshot();
-        console.log(imageSrc);
+        // console.log(imageSrc);
       }
     },
     [webcamRef]
@@ -22,6 +23,8 @@ const LiveAssistant = () => {
 
   useEffect(() => {
     setInterval(capture, 1000);
+    // example
+    socket.connect();
   }, []);
 
 
