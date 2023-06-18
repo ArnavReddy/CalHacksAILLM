@@ -77,14 +77,15 @@ const emojiName: any = {
   "Wide-eyed": "",
   Wince: "man-pouting_1f64e-200d-2642-fe0f",
   "Wrinkled nose": "",
-  "": "smiling-face_263a-fe0f",
 };
 
 // https://github.com/dherault/react-apple-emojis/blob/master/src/data.json
 const Emoji = ({ name }: AppProps) => {
   return (
     <img
-      src={`https://em-content.zobj.net/thumbs/240/apple/354/${emojiName[name]}.png`}
+      src={`https://em-content.zobj.net/thumbs/240/apple/354/${
+        name ? emojiName[name] : "smiling-face_263a-fe0f"
+      }.png`}
       alt=" "
       aria-label={name}
       style={{ width: 48, height: 48 }}
