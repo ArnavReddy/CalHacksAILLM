@@ -41,7 +41,15 @@ const videoConstraints = {
   facingMode: "user",
 };
 
-const SpeakerState = () => {
+const SpeakerState = ({ participants, pState, conf }) => {
+  let loc = "";
+  Object.keys(pState).forEach((id) => {
+    if (pState[id].isLocal) {
+      loc = id;
+      return;
+    }
+  });
+
   const webcamRef = useRef<any>(null);
   const wsRef = useRef<any>(null);
   const backendWSRef = useRef(null);
@@ -49,6 +57,51 @@ const SpeakerState = () => {
   const [speakerTone, setSpeakerTone] = useState("");
   const [audienceTone, setAudienceTone] = useState("");
   let [dataEmotionMap, setDataEmotionMap] = useState({});
+  const [dataMap, setDataMap] = useState({});
+  const [localID, setLocalID] = useState(loc);
+  const { isSpeaking } = pState[localID] || {};
+  const currentInterval: any = useRef([]);
+  const speakingIntervals: any = useRef([]);
+  const pastSpeakerTones: any = useRef([]);
+
+  useEffect(() => {
+    if (speakerTone !== "") {
+      pastSpeakerTones.current.push({ tone: speakerTone, time: new Date() });
+    }
+    console.log(pastSpeakerTones.current);
+  }, [speakerTone]);
+
+  useEffect(() => {
+    const currDate = new Date();
+    if (isSpeaking) {
+      if (currentInterval.current.length == 0) {
+        console.log("pushing");
+        currentInterval.current.push(new Date());
+      } else if (currentInterval.current.length == 2) {
+        const currDate = new Date();
+        if (currDate.getTime() - currentInterval.current[1].getTime() < 5000) {
+          currentInterval.current.pop();
+        } else {
+          speakingIntervals.current.push(currentInterval.current);
+          currentInterval.current = [];
+        }
+      }
+      console.log("start", currDate);
+    } else {
+      if (currentInterval.current.length == 1) {
+        currentInterval.current.push(new Date());
+      } else if (currentInterval.current.length == 2) {
+        const currDate = new Date();
+        if (currDate.getTime() - currentInterval.current[1].getTime() < 5000) {
+          currentInterval.current[1] = currDate;
+        } else {
+          speakingIntervals.current.push(currentInterval.current);
+          currentInterval.current = [];
+        }
+      }
+      console.log("end", currDate);
+    }
+  }, [isSpeaking]);
 
   // Function to add a new object to the array
   function addObject(emotion_in: any, x_in: any, y_in: any) {
@@ -134,7 +187,7 @@ const SpeakerState = () => {
         wsRef.current.onerror = errorHandler;
         wsRef.current.onmessage = messageHandler;
 
-        console.log(wsRef.current);
+        // console.log(wsRef.current);
       }, 2000);
     };
 
@@ -187,7 +240,7 @@ const SpeakerState = () => {
 
       // Construct the formatted string
       const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-      console.log("DATE", formattedDate);
+      // console.log("DATE", formattedDate);
 
       // Loop through the keys
       let keys = Object.keys(emotions);
