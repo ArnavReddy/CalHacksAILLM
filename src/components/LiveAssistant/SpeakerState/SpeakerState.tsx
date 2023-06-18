@@ -78,6 +78,7 @@ const SpeakerState = ({ participants, pState, conf }) => {
   const pastSpeakerTones: any = useRef([]);
   const [selectedEmotion, setSelectedEmotion] = useState("Determination");
   const [recordedChunks, setRecordedChunks] = useState([]);
+  const intervalIDs:any = useRef([]);
 
   useEffect(() => {
     if (speakerTone !== "") {
@@ -145,12 +146,15 @@ const SpeakerState = ({ participants, pState, conf }) => {
         },
         data: base64Audio,
       };
-      wsRef.current.send(JSON.stringify(payload));
+      if(wsRef.current && wsRef?.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify(payload));
+      }
     };
     sendAudioProsodyPayload(encodedBlob);
   }
 
   const prosodyHandler = (apiInput: string) => {
+    console.log("received response from audio")
     const data = JSON.parse(apiInput);
     if (data.error) {
       return;
@@ -186,7 +190,6 @@ const SpeakerState = ({ participants, pState, conf }) => {
 
     // Construct the formatted string
     const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-    // console.log("DATE", formattedDate);
 
     // Loop through the keys
 
@@ -221,7 +224,6 @@ const SpeakerState = ({ participants, pState, conf }) => {
       // );
 
       mediaRecorderRef.current.ondataavailable = handleDataAvailable;
-      console.log("recording");
       mediaRecorderRef.current.start();
     }
   }, [mediaRecorderRef, webcamRef]);
@@ -251,27 +253,75 @@ const SpeakerState = ({ participants, pState, conf }) => {
   );
 
   useEffect(() => {
+    if(intervalIDs) {
+      intervalIDs.current.forEach((id:any) => {
+        clearInterval(id);
+      })
+    }
     if (!conf) {
       mediaRecorderRef?.current.stop();
     }
   }, [conf]);
 
   useEffect(() => {
-    setInterval(recordAndSend, 3000);
+    intervalIDs.current.push(setInterval(recordAndSend, 3000));
 
-    wsRef.current = new WebSocket(
-      "wss://api.hume.ai/v0/stream/models?apikey=q7KqeFZxKy8uM3aDw0tgGnYQmXIrdC8de43cz5XKr0rrFpjq"
-    );
-
+    
     const openHandler = () => {
       console.log("WebSocket connection established");
     };
 
     const closeHandler = () => {
       console.log("WebSocket connection closed");
-      setTimeout(() => {
-        console.log("reconnecting");
-        wsRef.current = null;
+      // setTimeout(() => {
+      //   console.log("reconnecting");
+      //   wsRef.current = null;
+      //   wsRef.current = new WebSocket(
+      //     "wss://api.hume.ai/v0/stream/models?apikey=q7KqeFZxKy8uM3aDw0tgGnYQmXIrdC8de43cz5XKr0rrFpjq"
+      //   );
+
+      //   wsRef.current.onopen = openHandler;
+      //   wsRef.current.onclose = closeHandler;
+      //   wsRef.current.onerror = errorHandler;
+      //   wsRef.current.onmessage = messageHandler;
+      // }, 2000);
+    };
+
+    const errorHandler = (error: any) => {
+      console.log(error.ErrorEvent);
+      // wsRef.current = new WebSocket(
+      //   "wss://api.hume.ai/v0/stream/models?apikey=q7KqeFZxKy8uM3aDw0tgGnYQmXIrdC8de43cz5XKr0rrFpjq"
+      // );
+
+      // wsRef.current.onopen = openHandler;
+      // wsRef.current.onclose = closeHandler;
+      // wsRef.current.onerror = errorHandler;
+      // wsRef.current.onmessage = messageHandler;
+    };
+
+    const messageHandler = (event: any) => {
+      var total_data = {
+        data: JSON.parse(event.data),
+        members: participants.length,
+      };
+      console.log("message handled");
+      if (event.data.length >= 2 && event.data.charAt(2) === "f") {
+        socket.emit("face", JSON.stringify(total_data));
+      } else {
+        prosodyHandler(event.data);
+      }
+    };
+
+    intervalIDs.current.push(setInterval(() => {
+
+      // console.log(wsRef);
+
+      // console.log(!(wsRef.current));
+      // console.log(wsRef?.current?.readyState === WebSocket.CLOSED)
+
+      if(!(wsRef.current) || wsRef?.current?.readyState === WebSocket.CLOSED) {
+        console.log("attempting to create new socket connection");
+        
         wsRef.current = new WebSocket(
           "wss://api.hume.ai/v0/stream/models?apikey=q7KqeFZxKy8uM3aDw0tgGnYQmXIrdC8de43cz5XKr0rrFpjq"
         );
@@ -280,29 +330,14 @@ const SpeakerState = ({ participants, pState, conf }) => {
         wsRef.current.onclose = closeHandler;
         wsRef.current.onerror = errorHandler;
         wsRef.current.onmessage = messageHandler;
-      }, 2000);
-    };
-
-    const errorHandler = (error: any) => {
-      console.log(error.ErrorEvent);
-    };
-
-    const messageHandler = (event: any) => {
-      var total_data = {
-        data: JSON.parse(event.data),
-        members: participants.length,
-      };
-      if (event.data.length >= 2 && event.data.charAt(2) === "f") {
-        socket.emit("face", JSON.stringify(total_data));
       } else {
-        prosodyHandler(event.data);
+        return;
       }
-    };
+    }, 3000));
 
-    wsRef.current.onopen = openHandler;
-    wsRef.current.onclose = closeHandler;
-    wsRef.current.onerror = errorHandler;
-    wsRef.current.onmessage = messageHandler;
+
+
+
 
     socket.on("face_emit", (data) => {
       setAudienceTone(data);
@@ -354,7 +389,8 @@ const SpeakerState = ({ participants, pState, conf }) => {
       }
     });
 
-    setInterval(capture, 2000);
+    intervalIDs.current.push(setInterval(capture, 2000));
+    
     setTimeout(() => {
       record();
     }, 4000);
@@ -375,11 +411,13 @@ const SpeakerState = ({ participants, pState, conf }) => {
       },
       data: base64Image,
     };
-
-    wsRef.current.send(JSON.stringify(payload));
+    if(!(wsRef.current) || wsRef?.current?.readyState === WebSocket.OPEN) {
+      console.log("attempting to create new socket connection");
+      wsRef.current.send(JSON.stringify(payload));
+    }
   };
 
-  console.log("EMOTIONMAP", JSON.stringify(Object.keys(dataEmotionMap)));
+  // console.log("EMOTIONMAP", JSON.stringify(Object.keys(dataEmotionMap)));
 
   function removeDups(dataArr) {
     if (!dataArr) return [];
