@@ -23,7 +23,10 @@ import { Line } from "react-chartjs-2";
 import { socket } from "../../../socket";
 import { AudioRecorder, blobToBase64 } from "./AudioRecord";
 
+import Emoji from "@src/components/Emoji/Emoji";
+import { Chart as ChartJS } from "chart.js/auto";
 import annotationPlugin from "chartjs-plugin-annotation";
+
 
 ChartJS.register(
   TimeScale,

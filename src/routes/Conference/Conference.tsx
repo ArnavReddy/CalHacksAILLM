@@ -262,7 +262,7 @@ export const Conference = () => {
                   />
                   {isOneParticipant && <OneParticipant />}
                 </Space>
-                <LiveAssistant />
+                {isOneParticipant || <div style={{width: "350px", backgroundColor: "rgba(41,41,47,255)", borderRadius: "10px", borderColor: "rgba(157,60,246,255)", borderWidth: "2px", textAlign: "center", borderStyle: "solid"}}><LiveAssistant/> </div>}
               </Space>
             </Space>
             <div className="dockRef" ref={dockRef}>
