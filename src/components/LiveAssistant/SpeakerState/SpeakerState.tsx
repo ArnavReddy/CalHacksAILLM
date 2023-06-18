@@ -78,7 +78,7 @@ const SpeakerState = ({ participants, pState, conf }) => {
   const pastSpeakerTones: any = useRef([]);
   const [selectedEmotion, setSelectedEmotion] = useState("Determination");
   const [recordedChunks, setRecordedChunks] = useState([]);
-  const intervalIDs:any = useRef([]);
+  const intervalIDs: any = useRef([]);
 
   useEffect(() => {
     if (speakerTone !== "") {
@@ -146,7 +146,7 @@ const SpeakerState = ({ participants, pState, conf }) => {
         },
         data: base64Audio,
       };
-      if(wsRef.current && wsRef?.current?.readyState === WebSocket.OPEN) {
+      if (wsRef.current && wsRef?.current?.readyState === WebSocket.OPEN) {
         wsRef.current.send(JSON.stringify(payload));
       }
     };
@@ -154,7 +154,7 @@ const SpeakerState = ({ participants, pState, conf }) => {
   }
 
   const prosodyHandler = (apiInput: string) => {
-    console.log("received response from audio")
+    console.log("received response from audio");
     const data = JSON.parse(apiInput);
     if (data.error) {
       return;
@@ -253,10 +253,10 @@ const SpeakerState = ({ participants, pState, conf }) => {
   );
 
   useEffect(() => {
-    if(intervalIDs) {
-      intervalIDs.current.forEach((id:any) => {
+    if (intervalIDs) {
+      intervalIDs.current.forEach((id: any) => {
         clearInterval(id);
-      })
+      });
     }
     if (!conf) {
       mediaRecorderRef?.current.stop();
@@ -266,7 +266,6 @@ const SpeakerState = ({ participants, pState, conf }) => {
   useEffect(() => {
     intervalIDs.current.push(setInterval(recordAndSend, 3000));
 
-    
     const openHandler = () => {
       console.log("WebSocket connection established");
     };
@@ -312,32 +311,29 @@ const SpeakerState = ({ participants, pState, conf }) => {
       }
     };
 
-    intervalIDs.current.push(setInterval(() => {
+    intervalIDs.current.push(
+      setInterval(() => {
+        // console.log(wsRef);
 
-      // console.log(wsRef);
+        // console.log(!(wsRef.current));
+        // console.log(wsRef?.current?.readyState === WebSocket.CLOSED)
 
-      // console.log(!(wsRef.current));
-      // console.log(wsRef?.current?.readyState === WebSocket.CLOSED)
+        if (!wsRef.current || wsRef?.current?.readyState === WebSocket.CLOSED) {
+          console.log("attempting to create new socket connection");
 
-      if(!(wsRef.current) || wsRef?.current?.readyState === WebSocket.CLOSED) {
-        console.log("attempting to create new socket connection");
-        
-        wsRef.current = new WebSocket(
-          "wss://api.hume.ai/v0/stream/models?apikey=q7KqeFZxKy8uM3aDw0tgGnYQmXIrdC8de43cz5XKr0rrFpjq"
-        );
+          wsRef.current = new WebSocket(
+            "wss://api.hume.ai/v0/stream/models?apikey=q7KqeFZxKy8uM3aDw0tgGnYQmXIrdC8de43cz5XKr0rrFpjq"
+          );
 
-        wsRef.current.onopen = openHandler;
-        wsRef.current.onclose = closeHandler;
-        wsRef.current.onerror = errorHandler;
-        wsRef.current.onmessage = messageHandler;
-      } else {
-        return;
-      }
-    }, 3000));
-
-
-
-
+          wsRef.current.onopen = openHandler;
+          wsRef.current.onclose = closeHandler;
+          wsRef.current.onerror = errorHandler;
+          wsRef.current.onmessage = messageHandler;
+        } else {
+          return;
+        }
+      }, 3000)
+    );
 
     socket.on("face_emit", (data) => {
       setAudienceTone(data);
@@ -390,7 +386,7 @@ const SpeakerState = ({ participants, pState, conf }) => {
     });
 
     intervalIDs.current.push(setInterval(capture, 2000));
-    
+
     setTimeout(() => {
       record();
     }, 4000);
@@ -411,7 +407,7 @@ const SpeakerState = ({ participants, pState, conf }) => {
       },
       data: base64Image,
     };
-    if(!(wsRef.current) || wsRef?.current?.readyState === WebSocket.OPEN) {
+    if (!wsRef.current || wsRef?.current?.readyState === WebSocket.OPEN) {
       console.log("attempting to create new socket connection");
       wsRef.current.send(JSON.stringify(payload));
     }
@@ -437,33 +433,49 @@ const SpeakerState = ({ participants, pState, conf }) => {
     <>
       <Card>
         <CardHeader>
-          <Heading color="white" size="lg">
-            Speaker Tone
+          <Heading color="white" fontSize="lg">
+            Speaker Tone:
           </Heading>
         </CardHeader>
         <CardBody>
-          <>
-            <Text color="white" size="lg">
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "center",
+              alignContent: "center",
+            }}
+          >
+            <Text color="white" fontSize="lg">
               {speakerTone ? speakerTone : ""}
             </Text>
+
             <Emoji name={speakerTone ? speakerTone : ""} />
-          </>
+          </div>
         </CardBody>
       </Card>
       <Divider />
       <Card>
         <CardHeader>
-          <Heading color="white" size="lg">
+          <Heading color="white" fontSize="lg">
             Audience Tone
           </Heading>
         </CardHeader>
         <CardBody>
-          <>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "center",
+              alignContent: "center",
+            }}
+          >
             <Text color="white" size="lg">
               {audienceTone ? audienceTone["emotions"] : ""}{" "}
             </Text>
+
             <Emoji name={audienceTone ? audienceTone["emotions"] : ""} />
-          </>
+          </div>
         </CardBody>
       </Card>
       <Divider />
@@ -472,7 +484,9 @@ const SpeakerState = ({ participants, pState, conf }) => {
         onChange={(e) => setSelectedEmotion(e.target.value)}
       >
         {Object.keys(dataEmotionMap).map((emotion) => (
-          <option value={emotion}>{emotion}</option>
+          <option key={emotion} value={emotion}>
+            {emotion}
+          </option>
         ))}
       </select>
 
