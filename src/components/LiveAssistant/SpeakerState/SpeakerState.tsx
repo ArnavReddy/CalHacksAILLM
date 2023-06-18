@@ -68,12 +68,14 @@ const SpeakerState = ({ participants, pState, conf }) => {
   const [speakerTone, setSpeakerTone] = useState("");
   const [audienceTone, setAudienceTone] = useState("");
   let [dataEmotionMap, setDataEmotionMap] = useState({});
+  let [dataSpeechMap, setDataSpeechMap] = useState({});
   const [dataMap, setDataMap] = useState({});
   const [localID, setLocalID] = useState(loc);
   const { isSpeaking } = pState[localID] || {};
   const currentInterval: any = useRef([]);
   const speakingIntervals: any = useRef([]);
   const pastSpeakerTones: any = useRef([]);
+  const [emotionalState, setEmotionalState] = useState({});
 
   console.log("speakerTone", speakerTone);
   console.log("audienceTone", audienceTone["emotions"]);
@@ -127,6 +129,16 @@ const SpeakerState = ({ participants, pState, conf }) => {
     setDataEmotionMap({ ...dataEmotionMap });
   }
 
+  // Function to add a new object to the array
+  function addObjectSpeech(emotion_in: any, x_in: any, y_in: any) {
+    if (!dataSpeechMap[emotion_in]) {
+      dataSpeechMap[emotion_in] = [];
+    }
+    dataSpeechMap[emotion_in].push({ x: x_in, y: y_in });
+
+    setDataSpeechMap({ ...dataSpeechMap });
+  }
+
   async function recordAndSend() {
     recorderRef.current = await AudioRecorder.create();
     const blob = await recorderRef.current.record(2000);
@@ -152,16 +164,45 @@ const SpeakerState = ({ participants, pState, conf }) => {
       return;
     }
     const emotions = data["prosody"]["predictions"][0]["emotions"];
-    // console.log(emotions);
+    console.log("EMO", emotions);
     let maxScore = 0;
     let maxEmotion = "";
+    let instantEmotions: any = {};
     for (let i = 0; i < emotions.length; i++) {
+      instantEmotions[emotions[i]["name"]] = emotions[i]["score"];
       if (emotions[i]["score"] > maxScore) {
         maxEmotion = emotions[i]["name"];
         maxScore = emotions[i]["score"];
       }
     }
-    // console.log(maxEmotion, maxScore);
+
+    let time = new Date().getTime().toString();
+
+    const inputDate = new Date(time);
+
+    // Format the date
+    const year = inputDate.getFullYear();
+    const month = (inputDate.getMonth() + 1).toString().padStart(2, "0");
+    const day = inputDate.getDate().toString().padStart(2, "0");
+
+    // Format the time
+    const hours = inputDate.getHours().toString().padStart(2, "0");
+    const minutes = inputDate.getMinutes().toString().padStart(2, "0");
+    const seconds = inputDate.getSeconds().toString().padStart(2, "0");
+
+    // Construct the formatted string
+    const formattedDate = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    // console.log("DATE", formattedDate);
+
+    // Loop through the keys
+    let keys = Object.keys(instantEmotions);
+    for (let i = 0; i < keys.length; i++) {
+      let emotion = keys[i];
+      let y = instantEmotions[keys[i]];
+      addObjectSpeech(emotion, formattedDate, y);
+    }
+
+    console.log(maxEmotion, maxScore);
     setSpeakerTone(maxEmotion);
   };
 
@@ -292,6 +333,7 @@ const SpeakerState = ({ participants, pState, conf }) => {
   }, []);
 
   useEffect(() => {}, [dataEmotionMap]);
+  useEffect(() => {}, [dataSpeechMap]);
 
   const sendImageFacePayload = (base64Image: any) => {
     const payload = {
@@ -428,6 +470,94 @@ const SpeakerState = ({ participants, pState, conf }) => {
           datasets: [
             {
               data: dataEmotionMap["Sadness"],
+            },
+          ],
+        }}
+      />
+
+      <Line
+        // options={{
+        //   scales: {
+        //     x: {
+        //       type: "time",
+        //     },
+        //   },
+        // }}
+        options={{
+          responsive: true,
+          scales: {
+            // x: {
+            //   type: "time",
+            // },
+            x: {
+              type: "time",
+              ticks: {
+                font: {
+                  size: 14,
+                },
+              },
+            },
+            y: {
+              ticks: {
+                font: {
+                  size: 14,
+                },
+              },
+            },
+          },
+          plugins: {
+            tooltip: {
+              enabled: true,
+              backgroundColor: "rgba(0, 0, 0, 0.8)",
+              titleColor: "#fff",
+              bodyColor: "#fff",
+              borderColor: "rgba(0, 0, 0, 0.8)",
+              borderWidth: 1,
+            },
+            legend: {
+              labels: {
+                font: {
+                  size: 14,
+                },
+              },
+            },
+            // annotation: {
+            //   annotations: {
+            //     box1: {
+            //       type: "box",
+            //       yMin: 0.2,
+            //       yMax: 0.8,
+            //       backgroundColor: "rgba(255, 99, 132, 0.25)",
+            //     },
+            //   },
+            // },
+          },
+          animation: {
+            duration: 2000,
+          },
+          elements: {
+            line: {
+              tension: 1, // Adjust the line tension as needed (0.0 to 1.0)
+              borderWidth: 3,
+              borderColor: "rgba(75, 192, 192, 1)",
+              backgroundColor: "rgba(75, 192, 192, 0.2)",
+              fill: true,
+            },
+            point: {
+              radius: 6,
+              backgroundColor: "rgba(75, 192, 192, 1)",
+              borderWidth: 2,
+              borderColor: "#fff",
+              hoverRadius: 6,
+              hoverBackgroundColor: "#fff",
+              hoverBorderWidth: 2,
+            },
+          },
+        }}
+        data={{
+          datasets: [
+            {
+              data: dataSpeechMap["Sadness"],
             },
           ],
         }}
