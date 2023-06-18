@@ -9,7 +9,6 @@ import {
   Heading,
   Text,
 } from "@chakra-ui/react";
-import Emoji from "@src/components/Emoji/Emoji";
 import {
   Legend,
   LineElement,
@@ -19,7 +18,6 @@ import {
   Title,
   Tooltip,
 } from "chart.js";
-import { Chart as ChartJS } from "chart.js/auto";
 import "chartjs-adapter-moment";
 import { Line } from "react-chartjs-2";
 import { socket } from "../../../socket";
@@ -170,6 +168,7 @@ const SpeakerState = ({ participants, pState, conf }) => {
   const capture = useCallback(() => {
     if (webcamRef) {
       const imageSrc = webcamRef.current.getScreenshot();
+      // console.log("IMAGE", imageSrc);
       sendImageFacePayload(imageSrc);
     }
   }, [webcamRef]);
@@ -213,7 +212,10 @@ const SpeakerState = ({ participants, pState, conf }) => {
 
     const messageHandler = (event: any) => {
       // console.log(event.data);
-      var total_data = { data: event.data, members: participants.length };
+      var total_data = {
+        data: JSON.parse(event.data),
+        members: participants.length,
+      };
       if (event.data.length >= 2 && event.data.charAt(2) === "f") {
         socket.emit("face", JSON.stringify(total_data));
       } else {
